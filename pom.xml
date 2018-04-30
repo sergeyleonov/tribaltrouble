@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.oddlabs.tribaltrouble</groupId>
+	<artifactId>tribaltrouble</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<description>Tribal trouble main</description>
+
+	<modules>
+		<module>common</module>
+		<module>tt</module>
+		<module>tools</module>
+	</modules>
+
+	<properties>
+		<app.release.version>1.0-SNAPSHOT</app.release.version>
+		<!--Java-->
+		<java.se.version>1.6</java.se.version>
+		<!--Maven-->
+		<maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.plugin.version}</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>${java.se.version}</source>
+					<target>${java.se.version}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

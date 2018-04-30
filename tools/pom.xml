@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>tools</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<description>Tribal trouble tools</description>
+
+	<parent>
+		<groupId>com.oddlabs.tribaltrouble</groupId>
+		<artifactId>tribaltrouble</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.oddlabs.tribaltrouble</groupId>
+			<artifactId>common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.tmatesoft.svn</groupId>
+					<artifactId>javasvn</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl.lwjgl</groupId>
+			<artifactId>lwjgl</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/../lib/lwjgl.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl.lwjgl</groupId>
+			<artifactId>lwjgl_util</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/../lib/lwjgl_util.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.tmatesoft.svn</groupId>
+			<artifactId>svnkit</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/../tools/svn/svnkit.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>gr.zdimensions</groupId>
+			<artifactId>jsquish</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/../lib/jsquish.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.sixlegs</groupId>
+			<artifactId>image.png</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/../lib/png.jar</systemPath>
+		</dependency>
+	</dependencies>
+
+</project>
