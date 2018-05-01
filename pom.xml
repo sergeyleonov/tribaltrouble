@@ -9,13 +9,13 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<description>Tribal Trouble main</description>
+	<description>Tribal Trouble root</description>
 
 	<modules>
 		<module>common</module>
+		<module>tools</module>
 		<module>resources</module>
 		<module>tt</module>
-		<module>tools</module>
 		<module>server</module>
 	</modules>
 

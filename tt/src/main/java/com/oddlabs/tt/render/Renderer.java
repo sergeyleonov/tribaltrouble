@@ -397,10 +397,10 @@ public final strictfp class Renderer {
 		boolean reset_keyboard = false;
 		// Registry hack for mikkel!
 		/*try {
-		String value = com.oddlabs.tt.util.WindowsRegistryInterface.queryRegistrationKey("HKEY_LOCAL_MACHINE", "HARDWARE\\DeviceMap\\Video", "\\Device\\Video0");
-		System.out.println("value = " + value);
+			String value = com.oddlabs.tt.util.WindowsRegistryInterface.queryRegistrationKey("HKEY_LOCAL_MACHINE", "HARDWARE\\DeviceMap\\Video", "\\Device\\Video0");
+			System.out.println("value = " + value);
 		} catch (Exception e) {
-		e.printStackTrace();
+			e.printStackTrace();
 		}*/
 		try {
 			while (!finished) {
@@ -426,8 +426,9 @@ public final strictfp class Renderer {
 					}
 				} else {
 					reset_keyboard = true;
-					if (AL.isCreated())
+					if (AL.isCreated()) {
 						AL10.alListenerf(AL10.AL_GAIN, 0f);
+					}
 					try {
 						Thread.sleep(10);
 					} catch (InterruptedException e) {
@@ -558,32 +559,8 @@ public final strictfp class Renderer {
 		PlayerInfo[] players = new PlayerInfo[]{player_info};
 		WorldInfo world_info = generator.generate(players.length, world_params.getInitialUnitCount(), 0f);
 		World world = World.newWorld(AudioManager.getManager(), landscape_resources, null,
-				LandscapeResources.loadTreeLowDetails(), new NotificationListener() {
-
-			public final void gamespeedChanged(int speed) {
-			}
-
-			public final void playerGamespeedChanged() {
-			}
-
-			public final void newAttackNotification(Selectable target) {
-			}
-
-			public final void newSelectableNotification(Selectable target) {
-			}
-
-			public final void registerTarget(Target target) {
-			}
-
-			public final void unregisterTarget(Target target) {
-			}
-
-			public final void updateTreeLowDetail(StrictMatrix4f matrix, TreeSupply tree) {
-			}
-
-			public final void patchesEdited(int patch_x0, int patch_y0, int patch_x1, int patch_y1) {
-			}
-		}, world_params, world_info, generator.getTerrainType(), players, new float[][]{Player.COLORS[0]});
+				LandscapeResources.loadTreeLowDetails(), new DummyNotificationListener(),
+				world_params, world_info, generator.getTerrainType(), players, new float[][]{Player.COLORS[0]});
 		AnimationManager manager = new AnimationManager();
 		LandscapeRenderer landscape_renderer = new LandscapeRenderer(world, world_info, gui_root, manager);
 		Player local_player = world.getPlayers()[0];
@@ -912,5 +889,40 @@ public final strictfp class Renderer {
 		GL11.glClearColor(0f, 0f, 0f, 0f);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 //		GL11.glClearColor(1f, 0f, 1f, 0f);
+	}
+
+	private static class DummyNotificationListener implements NotificationListener {
+
+		@Override
+		public final void gamespeedChanged(int speed) {
+		}
+
+		@Override
+		public final void playerGamespeedChanged() {
+		}
+
+		@Override
+		public final void newAttackNotification(Selectable target) {
+		}
+
+		@Override
+		public final void newSelectableNotification(Selectable target) {
+		}
+
+		@Override
+		public final void registerTarget(Target target) {
+		}
+
+		@Override
+		public final void unregisterTarget(Target target) {
+		}
+
+		@Override
+		public final void updateTreeLowDetail(StrictMatrix4f matrix, TreeSupply tree) {
+		}
+
+		@Override
+		public final void patchesEdited(int patch_x0, int patch_y0, int patch_x1, int patch_y1) {
+		}
 	}
 }
