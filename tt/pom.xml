@@ -5,9 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>tt</artifactId>
-	<version>1.0-SNAPSHOT</version>
 
-	<description>Tribal trouble</description>
+	<description>Tribal Trouble main</description>
 
 	<parent>
 		<groupId>com.oddlabs.tribaltrouble</groupId>
@@ -50,5 +49,32 @@
 			<systemPath>${pom.basedir}/../lib/jorbis.jar</systemPath>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>generate-textures</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>java</executable>
+							<workingDirectory>target</workingDirectory>
+							<arguments>
+								<argument>com.oddlabs.texturegenerator.TextureGenerator</argument>
+								<argument>textures</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

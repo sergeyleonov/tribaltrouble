@@ -1,4 +1,5 @@
 <project name="tt" basedir="." default="compile">
+
 	<import file="../common/common.xml"/>
 	<property name="jre" value="jre1.5.0_04"/>
 	<property name="main_class" value="com.oddlabs.tt.Main"/>
@@ -18,14 +19,11 @@
 	<property name="installers.tmproot" location="${installers.build}/tmp"/>
 	<property name="installers.tmp" location="${installers.tmproot}/build"/>
 	<property name="bundleresources" location="${installers.tmp}/Tribal Trouble.app/Contents/Resources/Java"/>
-	<!--<property name="gamedata-svnurl" value="http://127.0.0.1/public_svnroot/games/tt"/>-->
 	<property name="gamedata-svnurl" value="http://update.oddlabs.com/public_svnroot/games/tt"/>
 	<property name="jar.compress" value="true"/>
 	<property name="dist" location="${build}/dist"/>
 	<property name="svndist" location="svndist"/>
 	
-	<!--	<property name="webstartdist" location="webstartdist"/>-->
-
 	<target name="compiledeps" depends="compile-common">
 	</target>
 
@@ -112,14 +110,13 @@
 			<property name="image_ext" value="dxtn"/>
 			<property name="dstdir" location="${buildtextures}/font"/>
 		</ant>
-		<!--		<ant inheritAll="false" dir="../tools" target="textures">
+		<!--<ant inheritAll="false" dir="../tools" target="textures">
 			<property name="ressrc" location="${srcdirtextures}"/>
 			<property name="resbuild" location="${buildtextures}"/>
 		</ant>-->
 		<property name="texture.src" value="${srcdirtextures}/models"/>
 		<property name="team.src" value="${srcdirtextures}/teamdecals"/>
 		<property name="texture.dst" value="${buildtextures}/models"/>
-		<!-- 1/2.2 ~ 0.45454545454545453 -->
 		<fileset id="textures" dir="${texture.src}">
 			<include name="**/*.png"/>
 		</fileset>
@@ -128,6 +125,7 @@
 		</fileset>
 		<ant inheritAll="false" dir="../tools" target="convert">
 			<reference refid="textures" torefid="image_files"/>
+			<!-- 1/2.2 ~ 0.45454545454545453 -->
 			<property name="convert_args" value="-flip -gamma 0.45454545454545453 -mipmaps -gamma 2.2"/>
 			<property name="image_ext" value="dxtn"/>
 			<property name="dstdir" location="${texture.dst}"/>
@@ -212,7 +210,7 @@
 		</jar>
 		<copy todir="${dist}/common">
 			<fileset dir="${build}">
-				<!--			<include name="com/oddlabs/tt/**/*class"/>
+				<!--<include name="com/oddlabs/tt/**/*class"/>
 				<include name="com/oddlabs/net/**/*class"/>
 				<include name="com/oddlabs/util/**/*class"/>
 				<include name="com/oddlabs/registration/**/*class"/>
@@ -242,7 +240,7 @@
 				<include name="sfx/*.wav"/>
 				<include name="music/*.ogg"/>
 				<include name="font/*font"/>
-				<!--				<include name="textures/models/*png"/>
+				<!--<include name="textures/models/*png"/>
 				<include name="textures/models/*jpg"/>-->
 			</fileset>
 			<fileset dir="${lib}">
@@ -314,7 +312,6 @@
 			<fileset dir="${installers}/linux/data" includes="*"/>
 		</copy>
 		<chmod file="${installers.assembly}/linux-x86/tribaltrouble" perm="755"/>
-
 		<!-- mac os x -->
 		<mkdir dir="${installers.assembly}/macosx-ppc/gamedata"/>
 		<antcall target="-checkoutgamedata">
@@ -388,7 +385,6 @@
 		</antcall>
 	</target>
 
-	<!--<target name="initinstalltmp" depends="cleaninstallertmp, copybuynowfile"/>-->
 	<target name="initinstalltmp" depends="assembleinstaller, cleaninstallertmp, copybuynowfile"/>
 
 	<target name="cleaninstallertmp">
