@@ -17,42 +17,36 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 public final class Convert {
 
-	private static String current_ext;
+	private static String targetExtension;
 
 	public static void main(String[] args) throws IOException {
 		if (args.length < 2) {
-			System.out.println("Usage: Convert <infile> <operations> <outfile>");
+			System.out.println("Usage: Convert <infile/indir> <operations> <outfile>");
 			System.exit(1);
 		}
 		File infile = new File(args[0]);
-		File outfile = new File(args[args.length - 1]);
-		List args_list = new ArrayList();
-		for (int i = 1; i < args.length - 1; i++) {
-			args_list.add(args[i]);
+		File targetDir = new File(args[args.length - 1]);
+		targetDir.mkdirs();
+		List<String> argsList = Arrays.asList(args).subList(1, args.length - 1);
+		for (File file : infile.listFiles()) {
+			processFile(file, targetDir, argsList);
 		}
-		System.out.println("Converting " + infile);
+	}
+
+	private static void processFile(File infile, File targetDir, List<String> args) throws IOException {
+		System.out.println("Converting file " + infile);
 		Layer[] images = new Layer[]{loadFile(infile)};
-		images = processOperations(args_list.iterator(), images);
-		if (outfile.exists()) {
-			if (outfile.isDirectory()) {
-				String infilename = infile.getName();
-				int dot_index = infilename.lastIndexOf(".");
-				outfile = new File(outfile, infilename.substring(0, dot_index));
-			}
-		} else {
-			File parent = outfile.getParentFile();
-			if (parent != null)
-				parent.mkdirs();
-		}
-		if (current_ext != null && !outfile.getName().endsWith(current_ext)) {
-			outfile = new File(outfile.getParentFile(), outfile.getName() + "." + current_ext);
-		}
-		System.out.println("outfile = " + outfile);
+		images = processOperations(args.iterator(), images);
+		File outfile = targetExtension == null
+				? new File(targetDir, infile.getName())
+				: new File(targetDir, infile.getName().substring(0, infile.getName().lastIndexOf('.')) + '.' + targetExtension);
+		System.out.println("Writing to file: " + outfile);
 		save(outfile, images);
 	}
 
@@ -69,7 +63,7 @@ public final class Convert {
 			if (images.length != 1) {
 				throw new IllegalArgumentException("Can only create mipmaps from one image, not " + images.length);
 			}
-			List mipmaps = new ArrayList();
+			List<Layer> mipmaps = new ArrayList<Layer>();
 			Layer last_mipmap = images[0];
 			int mip_width = last_mipmap.getWidth();
 			int mip_height = last_mipmap.getHeight();
@@ -82,22 +76,22 @@ public final class Convert {
 				mipmaps.add(mipmap);
 				last_mipmap = mipmap;
 			}
-			images = (Layer[]) mipmaps.toArray(new Layer[0]);
+			images = mipmaps.toArray(new Layer[0]);
 		} else if (op.equals("-half")) {
-			for (int i = 0; i < images.length; i++) {
-				images[i].scaleHalf();
+			for (Layer image : images) {
+				image.scaleHalf();
 			}
 		} else if (op.equals("-format")) {
-			current_ext = (String) args.next();
+			targetExtension = (String) args.next();
 		} else if (op.equals("-flip")) {
-			for (int i = 0; i < images.length; i++) {
-				images[i].flipV();
+			for (Layer image : images) {
+				image.flipV();
 			}
 		} else if (op.equals("-gamma")) {
 			String gamma_str = (String) args.next();
 			float gamma = Float.parseFloat(gamma_str);
-			for (int i = 0; i < images.length; i++) {
-				images[i].gamma(gamma);
+			for (Layer image : images) {
+				image.gamma(gamma);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + op);
@@ -122,19 +116,20 @@ public final class Convert {
 		}
 		byte[] bytes = new byte[width * height * 4];
 		int index = 0;
-		for (int i = 0; i < ints.length; i++) {
-			byte a = (byte) ((ints[i] >> 24) & 0xff);
-			byte r = (byte) ((ints[i] >> 16) & 0xff);
-			byte g = (byte) ((ints[i] >> 8) & 0xff);
-			byte b = (byte) ((ints[i]) & 0xff);
+		for (int anInt : ints) {
+			byte a = (byte) ((anInt >> 24) & 0xff);
+			byte r = (byte) ((anInt >> 16) & 0xff);
+			byte g = (byte) ((anInt >> 8) & 0xff);
+			byte b = (byte) ((anInt) & 0xff);
 			bytes[index++] = r;
 			bytes[index++] = g;
 			bytes[index++] = b;
 			bytes[index++] = a;
 		}
 		Layer image_layer = new Layer(width, height);
-		if (channels == 4)
+		if (channels == 4) {
 			image_layer.a = new Channel(width, height);
+		}
 		image_layer.loadFromBytes(bytes);
 		return image_layer;
 	}

@@ -110,6 +110,7 @@
 			<property name="image_ext" value="dxtn"/>
 			<property name="dstdir" location="${buildtextures}/font"/>
 		</ant>
+
 		<!--<ant inheritAll="false" dir="../tools" target="textures">
 			<property name="ressrc" location="${srcdirtextures}"/>
 			<property name="resbuild" location="${buildtextures}"/>
