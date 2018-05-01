@@ -185,5 +185,39 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>generate-models</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>generate-models</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
+										<java failonerror="true" fork="yes"
+											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl_util.jar"
+											  classname="com.oddlabs.converter.ConvertToBinary">
+											<jvmarg value="-ea"/>
+											<arg value="geometry.xml"/>
+											<arg value="${project.build.outputDirectory}/geometry"/>
+											<arg value="${project.build.directory}/geometry"/>
+										</java>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
