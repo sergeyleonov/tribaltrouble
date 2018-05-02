@@ -1,9 +1,6 @@
 package com.oddlabs.util;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -136,18 +133,44 @@ public final strictfp class Utils {
 	}
 
 	public static URL makeURL(String location) {
-		try {
-			return tryMakeURL(location);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static URL tryMakeURL(String location) throws IOException {
 		URL url = Utils.class.getResource(location);
 		if (url == null) {
-			throw new IOException(location + " not found");
+			throw new RuntimeException(location + " not found");
 		}
 		return url;
+	}
+
+	public static String resourceToString(String resourcePath) {
+		InputStream inputStream = null;
+		ByteArrayOutputStream byteArrayOutputStream = null;
+		try {
+			inputStream = makeURL(resourcePath).openStream();
+			byteArrayOutputStream = new ByteArrayOutputStream(inputStream.available());
+			byte[] buffer = new byte[1024];
+			int count;
+			while (true) {
+				count = inputStream.read(buffer);
+				if (count < 0) {
+					break;
+				}
+				byteArrayOutputStream.write(buffer, 0, count);
+			}
+			return new String(byteArrayOutputStream.toByteArray());
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (inputStream != null) {
+					inputStream.close();
+				}
+				if (byteArrayOutputStream != null) {
+					byteArrayOutputStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

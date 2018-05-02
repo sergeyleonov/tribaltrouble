@@ -30,12 +30,13 @@
 	<target name="compile-common">
 		<ant inheritAll="false" dir="../common" target="compile"/>
 	</target>
-	
+
 	<target name="compiledeps"/>
 
 	<target name="compile" depends="init,compiledeps">
-		<javac debug="yes" source="${java_source_version}" target="${java_source_version}" classpath="${classpath}" srcdir="classes" destdir="${build}/classes">
-			<!--			<compilerarg value="-Xmaxerrs"/>
+		<javac debug="yes" source="${java_source_version}" target="${java_source_version}" classpath="${classpath}"
+			   srcdir="classes" destdir="${build}/classes">
+			<!--<compilerarg value="-Xmaxerrs"/>
 			<compilerarg value="50"/>-->
 		</javac>
 	</target>
@@ -116,7 +117,7 @@
 			<jvmarg value="-Dorg.lwjgl.util.Debug=true"/>
 			<jvmarg value="-Xmx80000000"/>
 			<!--<jvmarg value="-Djavax.net.debug=ssl,handshake,trustmanager"/>-->
-			<!--    <jvmarg value="-Dorg.lwjgl.opengl.Window.undecorated=true"/>-->
+			<!--<jvmarg value="-Dorg.lwjgl.opengl.Window.undecorated=true"/>-->
 		</java>
 	</target>
 </project>
