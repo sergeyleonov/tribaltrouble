@@ -27,9 +27,11 @@
 		</dependency>
 	</dependencies>
 
+	<!--todo: [] filter resources to avoid unnecessary copying to target-->
+	<!--todo: [] pack and use as dependency in tt-->
 	<profiles>
 		<profile>
-			<id>generate-textures</id>
+			<id>convert-textures</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -38,7 +40,7 @@
 						<version>1.8</version>
 						<executions>
 							<execution>
-								<id>generate-textures</id>
+								<id>convert-textures</id>
 								<phase>verify</phase>
 								<goals>
 									<goal>run</goal>
@@ -186,7 +188,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>generate-models</id>
+			<id>build-geometry</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -195,7 +197,7 @@
 						<version>1.8</version>
 						<executions>
 							<execution>
-								<id>generate-models</id>
+								<id>build-geometry</id>
 								<phase>verify</phase>
 								<goals>
 									<goal>run</goal>
@@ -206,6 +208,43 @@
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl_util.jar"
 											  classname="com.oddlabs.converter.ConvertToBinary">
+											<jvmarg value="-ea"/>
+											<!--32m is not enough-->
+											<!--<jvmarg value="-Xmx64000000"/>-->
+											<arg value="geometry.xml"/>
+											<arg value="${project.build.outputDirectory}/geometry"/>
+											<arg value="${project.build.directory}/geometry"/>
+										</java>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<!--No idea what is the difference from com.oddlabs.converter.ConvertToBinary-->
+			<id>build-geometry2</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>build-geometry2</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
+										<java failonerror="true" fork="yes"
+											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl_util.jar"
+											  classname="com.oddlabs.converter2.ConvertToBinary">
 											<jvmarg value="-ea"/>
 											<arg value="geometry.xml"/>
 											<arg value="${project.build.outputDirectory}/geometry"/>

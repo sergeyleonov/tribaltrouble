@@ -50,4 +50,42 @@
 		</dependency>
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>generate-textures</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>generate-textures</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!--todo: [] run under java 6-->
+										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
+										<java failonerror="true" fork="yes"
+											  jvm="C:\Program Files (x86)\Java\jre1.6.0_02\bin\java"
+											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl.jar;${pom.basedir}/../lib/lwjgl_util.jar"
+											  classname="com.oddlabs.texturegenerator.TextureGenerator">
+											<jvmarg value="-ea"/>
+											<jvmarg value="-Djava.library.path=${project.basedir}/../common/lib/native"/>
+											<arg value="${project.build.outputDirectory}/geometry"/>
+										</java>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
