@@ -1,13 +1,10 @@
 package com.oddlabs.matchservlet;
 
-import java.io.DataOutput;
-import java.io.OutputStream;
-import java.io.FilterOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 
 final strictfp class ServletUtil {
+
 	static void writeByteArray(DataOutput out, byte[] array) throws IOException {
 		out.writeInt(array.length);
 		out.write(array);

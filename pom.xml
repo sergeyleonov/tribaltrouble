@@ -17,6 +17,7 @@
 		<module>resources</module>
 		<module>tt</module>
 		<module>server</module>
+		<module>servlets</module>
 	</modules>
 
 	<properties>

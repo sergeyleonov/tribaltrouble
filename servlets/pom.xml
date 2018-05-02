@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>servlets</artifactId>
+	<packaging>war</packaging>
+
+	<description>Tribal Trouble servlets</description>
+
+	<parent>
+		<groupId>com.oddlabs.tribaltrouble</groupId>
+		<artifactId>tribaltrouble</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<!--Local launch-->
+		<jetty.context>/oddlabs</jetty.context>
+		<jetty.port>8050</jetty.port>
+		<jetty.stop-port>18050</jetty.stop-port>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.oddlabs.tribaltrouble</groupId>
+			<artifactId>common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.196</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>run-servlets</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-maven-plugin</artifactId>
+						<dependencies>
+							<dependency>
+								<groupId>com.h2database</groupId>
+								<artifactId>h2</artifactId>
+								<version>1.4.196</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<httpConnector>
+								<port>${jetty.port}</port>
+							</httpConnector>
+							<webAppConfig>
+								<contextPath>${jetty.context}</contextPath>
+							</webAppConfig>
+							<contextXml>${project.basedir}/src/main/resources/jetty-context.xml</contextXml>
+							<stopKey>STOP</stopKey>
+							<stopPort>${jetty.stop-port}</stopPort>
+						</configuration>
+						<executions>
+							<execution>
+								<id>run-servlets</id>
+								<phase>package</phase>
+								<goals>
+									<goal>stop</goal>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

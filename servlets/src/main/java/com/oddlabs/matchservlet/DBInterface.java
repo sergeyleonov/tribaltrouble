@@ -2,23 +2,24 @@ package com.oddlabs.matchservlet;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
 
 final strictfp class DBInterface {
+
 	private static void checkArguments(Object[] arguments) throws SQLException {
 		for (int i = 0; i < arguments.length; i++)
 			if (arguments[i] == null)
 				throw new SQLException("Argument " + i + " is null");
 	}
 
-	private static void assignArguments(PreparedStatement stmt, Object ... arguments) throws SQLException {
+	private static void assignArguments(PreparedStatement stmt, Object... arguments) throws SQLException {
 		for (int i = 0; i < arguments.length; i++)
 			stmt.setObject(i + 1, arguments[i]);
 	}
 
-	static int executeUpdate(DataSource source, String sql, Object ... arguments) throws SQLException {
+	static int executeUpdate(DataSource source, String sql, Object... arguments) throws SQLException {
 		Connection conn = source.getConnection();
 		try {
 			return executeUpdate(conn, sql, arguments);
@@ -27,7 +28,7 @@ final strictfp class DBInterface {
 		}
 	}
 
-	static int executeUpdate(Connection conn, String sql, Object ... arguments) throws SQLException {
+	static int executeUpdate(Connection conn, String sql, Object... arguments) throws SQLException {
 		checkArguments(arguments);
 		PreparedStatement stmt = conn.prepareStatement(sql);
 		try {
@@ -43,7 +44,7 @@ final strictfp class DBInterface {
 	}
 
 	static String getSetting(Connection conn, String setting) throws SQLException {
-		return (String)executeQuery(conn, new GetFirstStringQuery(), "SELECT value FROM settings WHERE property = ?", setting);
+		return (String) executeQuery(conn, new GetFirstStringQuery(), "SELECT value FROM settings WHERE property = ?", setting);
 	}
 
 	static int getIntSetting(DataSource source, String setting) throws SQLException {
@@ -64,7 +65,7 @@ final strictfp class DBInterface {
 		}
 	}
 
-	static Object executeQuery(DataSource source, Query query, String sql, Object ... arguments) throws SQLException {
+	static Object executeQuery(DataSource source, Query query, String sql, Object... arguments) throws SQLException {
 		Connection conn = source.getConnection();
 		try {
 			return executeQuery(conn, query, sql, arguments);
@@ -73,7 +74,7 @@ final strictfp class DBInterface {
 		}
 	}
 
-	static Object executeQuery(Connection conn, Query query, String sql, Object ... arguments) throws SQLException {
+	static Object executeQuery(Connection conn, Query query, String sql, Object... arguments) throws SQLException {
 		checkArguments(arguments);
 		PreparedStatement stmt = conn.prepareStatement(sql);
 		try {
