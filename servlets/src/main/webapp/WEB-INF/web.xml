@@ -15,7 +15,7 @@
 		<servlet-class>com.oddlabs.regservlet.RegistrationServlet</servlet-class>
 		<init-param>
 			<param-name>reg_key_pass</param-name>
-			<param-value>in8SHAow3tXjzeNkyuKx</param-value>
+			<param-value>password</param-value>
 		</init-param>
 	</servlet>
 

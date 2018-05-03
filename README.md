@@ -1,4 +1,41 @@
-Tribal Trouble
+Tribal Trouble (Y18 edition)
+==============
+User- and developer-friendly revision of Tribal Trouble game originally released by Oddlabs in 2004 and later published under GPL2 license.
+
+The project was cloned from [sunenielsen](https://github.com/sunenielsen/tribaltrouble.git) public repo and reworked. You can find the original readme below. Note that most commands in the old readme will not work. For the actual instructions refer to the main part of this readme.
+
+Prerequisites
+--------
+* [Java SE Development Kit 6u45](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html). Note that newer releases fail to launch the game on 64-bit Windows because only 32-bit dll libraries are included in the project.  
+
+* [Maven 3.2.5](https://archive.apache.org/dist/maven/maven-3/3.2.5/). Newer releases will not work under JDK 1.6.
+
+Startup
+--------
+First, you need to build the resources bundle on which the main game executable depends. Then you can launch the game without the resources being rebuild every time.
+
+Note that all the commands are run against the project root (where this readme file is located).
+
+#### Build the game resources
+```
+mvn clean install -P build-geometry, convert-textures, generate-textures
+```
+
+#### Launch the game
+```
+cd tribaltrouble
+java com.oddlabs.tt.Main
+-Djava.library.path=C:\Users\sbt-leonov-ss\tribaltrouble\common\lib\native
+```
+
+####
+Server is launched separately
+```
+cd servlets
+clean install -P run-servlets
+```
+
+Tribal Trouble (Original Readme)
 ==============
 Tribal Trouble is a realtime strategy game released by Oddlabs in 2004. In 2014 the source was released under GPL2 license, and can be found in this repository.
 

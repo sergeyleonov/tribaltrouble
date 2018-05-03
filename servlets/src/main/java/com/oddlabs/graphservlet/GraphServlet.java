@@ -22,6 +22,16 @@ public final class GraphServlet extends HttpServlet {
 	private static final int IMAGE_WIDTH = 532;
 	private static final int IMAGE_HEIGHT = 200;
 	private static final int BACKGROUND_COLOR = 0xFFFFFF;
+	private static final String GET_GAME_REPORT_SQL = "SELECT tick, team1, team2, team3, team4, team5, team6 FROM game_reports WHERE game_id = ?";
+
+	private static Connection getConnection() {
+		try {
+			DataSource dataSource = InitialContext.doLookup("jdbc/graphDB");
+			return dataSource.getConnection();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	public final void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		res.setContentType("image/png");
@@ -46,26 +56,25 @@ public final class GraphServlet extends HttpServlet {
 		}
 	}
 
-	private static Connection getConnection() {
-		try {
-			DataSource dataSource = InitialContext.doLookup("jdbc/graphDB");
-			return dataSource.getConnection();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	private int[][] getGameData(Connection conn, int game_id) throws SQLException {
-		PreparedStatement stmt = conn.prepareStatement("SELECT tick, team1, team2, team3, team4, team5, team6 FROM game_reports WHERE game_id = ?");
+		PreparedStatement stmt = conn.prepareStatement(GET_GAME_REPORT_SQL);
 		stmt.setInt(1, game_id);
 		ResultSet result = stmt.executeQuery();
-		ArrayList list = new ArrayList();
+		ArrayList<int[]> list = new ArrayList<int[]>();
 		while (result.next()) {
-			list.add(new int[]{result.getInt("tick"), result.getInt("team1"), result.getInt("team2"), result.getInt("team3"), result.getInt("team4"), result.getInt("team5"), result.getInt("team6")});
+			list.add(new int[]{
+					result.getInt("tick"),
+					result.getInt("team1"),
+					result.getInt("team2"),
+					result.getInt("team3"),
+					result.getInt("team4"),
+					result.getInt("team5"),
+					result.getInt("team6")
+			});
 		}
 		int[][] array = new int[list.size()][];
 		for (int i = 0; i < array.length; i++) {
-			array[i] = (int[]) list.get(i);
+			array[i] = list.get(i);
 		}
 		return array;
 	}
@@ -78,16 +87,17 @@ public final class GraphServlet extends HttpServlet {
 		g.setColor(Color.BLACK);
 		g.drawLine(0, IMAGE_HEIGHT - 1, IMAGE_WIDTH - 1, IMAGE_HEIGHT - 1);
 		g.drawLine(0, 0, 0, IMAGE_HEIGHT - 1);
-
 		if (data.length > 0) {
 			int max_x = 0;
 			int max_y = 0;
 			for (int[] aData : data) {
-				if (aData[0] > max_x)
+				if (aData[0] > max_x) {
 					max_x = aData[0];
+				}
 				for (int j = 1; j < aData.length; j++) {
-					if (aData[j] > max_y)
+					if (aData[j] > max_y) {
 						max_y = aData[j];
+					}
 				}
 			}
 			for (int i = 0; i < data.length; i++) {

@@ -8,7 +8,6 @@ import com.oddlabs.util.KeyManager;
 import com.oddlabs.util.PasswordKey;
 
 import javax.crypto.Cipher;
-import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletConfig;
@@ -19,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.*;
+import java.math.BigInteger;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -95,16 +95,16 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 	private static String normalizeKey(String key) throws IOException {
 		String result = key.toUpperCase();
 		result = result.replaceAll("-", "");
-		if (result.length() != 16)
+		if (result.length() != 16) {
 			throw new IOException("Invalid key: " + key);
+		}
 		result = result.substring(0, 4) + '-' + result.substring(4, 8) + '-' + result.substring(8, 12) + '-' + result.substring(12, 16);
 		return result;
 	}
 
 	private static DataSource getDataSource() throws ServletException {
 		try {
-			Context envCtx = InitialContext.doLookup("java:comp/env");
-			return (DataSource) envCtx.lookup("jdbc/regDB");
+			return InitialContext.doLookup("jdbc/regDB");
 		} catch (NamingException e) {
 			throw new ServletException(e);
 		}

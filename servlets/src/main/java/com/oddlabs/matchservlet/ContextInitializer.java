@@ -18,27 +18,6 @@ public final class ContextInitializer implements ServletContextListener {
 	private final static int KEY_SIZE = 1024;
 	private final static String KEY_ALGORITHM = "RSA";
 
-	public void contextInitialized(ServletContextEvent servletContextEvent) {
-		ServletContext servletContext = servletContextEvent.getServletContext();
-		servletContext.setAttribute("db", getDataSource());
-		KeyPair keyPair = generateKeyPair();
-		servletContext.setAttribute("private_key", keyPair.getPrivate());
-		servletContext.setAttribute("public_key", keyPair.getPublic());
-		createDBSchema();
-	}
-
-	public void contextDestroyed(ServletContextEvent servletContextEvent) {
-	}
-
-	private void createDBSchema() {
-		String sql = Utils.resourceToString("/db/createdb.sql");
-		try {
-			getDataSource().getConnection().prepareStatement(sql).execute();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
 	private static KeyPair generateKeyPair() {
 		try {
 			KeyPairGenerator keygen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
@@ -54,6 +33,29 @@ public final class ContextInitializer implements ServletContextListener {
 			return InitialContext.doLookup("jdbc/matchDB");
 		} catch (NamingException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		ServletContext servletContext = servletContextEvent.getServletContext();
+		servletContext.setAttribute("db", getDataSource());
+		KeyPair keyPair = generateKeyPair();
+		servletContext.setAttribute("private_key", keyPair.getPrivate());
+		servletContext.setAttribute("public_key", keyPair.getPublic());
+		createDBSchema();
+	}
+
+	public void contextDestroyed(ServletContextEvent servletContextEvent) {
+	}
+
+	private void createDBSchema() {
+		String ddlScript = Utils.resourceToString("/db/ddl.sql");
+		String dmlScript = Utils.resourceToString("/db/dml.sql");
+		try {
+			getDataSource().getConnection().prepareStatement(ddlScript).execute();
+			getDataSource().getConnection().prepareStatement(dmlScript).execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 }

@@ -50,18 +50,14 @@ CREATE VIEW match_valid_user AS
   FROM match_valid_key K, match_user U
   WHERE U.reg_key = K.reg_key AND U.banned_until < NOW();
 
-INSERT INTO settings VALUES ('max_profiles', '5');
-INSERT INTO settings VALUES ('min_username_length', '2');
-INSERT INTO settings VALUES ('max_username_length', '20');
-INSERT INTO settings VALUES ('min_password_length', '6');
-INSERT INTO settings VALUES ('max_password_length', '20');
-INSERT INTO settings
-VALUES ('allowed_chars', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789^|_.,:;?+={}[]()/\\&%#!<>*@$');
-INSERT INTO settings VALUES ('revision', '1116');
-
-CREATE USER matchservlet
-  IDENTIFIED BY "match";
-GRANT SELECT ON match_valid_user TO matchservlet;
-GRANT SELECT ON match_valid_key TO matchservlet;
-GRANT SELECT ON settings TO matchservlet;
-GRANT INSERT ON match_user TO matchservlet;
+CREATE TABLE game_reports (
+  game_id INT(10) NOT NULL,
+  tick    INT(10) NOT NULL,
+  team1   INT(10) NOT NULL,
+  team2   INT(10) NOT NULL,
+  team3   INT(10) NOT NULL,
+  team4   INT(10) NOT NULL,
+  team5   INT(10) NOT NULL,
+  team6   INT(10) NOT NULL,
+  PRIMARY KEY (game_id, tick)
+);
