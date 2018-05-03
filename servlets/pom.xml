@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -16,10 +16,10 @@
 	</parent>
 
 	<properties>
+		<h2.version>1.4.190</h2.version>
 		<!--Local launch-->
-		<jetty.context>/oddlabs</jetty.context>
-		<jetty.port>8050</jetty.port>
-		<jetty.stop-port>18050</jetty.stop-port>
+		<tomcat.context.path>/oddlabs</tomcat.context.path>
+		<tomcat.port>8050</tomcat.port>
 	</properties>
 
 	<dependencies>
@@ -29,14 +29,16 @@
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-		</dependency>
-		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.196</version>
+			<version>${h2.version}</version>
+		</dependency>
+		<!--Provided-->
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>6.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -46,32 +48,25 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.eclipse.jetty</groupId>
-						<artifactId>jetty-maven-plugin</artifactId>
+						<groupId>org.apache.tomcat.maven</groupId>
+						<artifactId>tomcat7-maven-plugin</artifactId>
+						<version>2.2</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.h2database</groupId>
 								<artifactId>h2</artifactId>
-								<version>1.4.196</version>
+								<version>${h2.version}</version>
 							</dependency>
 						</dependencies>
 						<configuration>
-							<httpConnector>
-								<port>${jetty.port}</port>
-							</httpConnector>
-							<webAppConfig>
-								<contextPath>${jetty.context}</contextPath>
-							</webAppConfig>
-							<contextXml>${project.basedir}/src/main/resources/jetty-context.xml</contextXml>
-							<stopKey>STOP</stopKey>
-							<stopPort>${jetty.stop-port}</stopPort>
+							<path>${tomcat.context.path}</path>
+							<port>${tomcat.port}</port>
 						</configuration>
 						<executions>
 							<execution>
 								<id>run-servlets</id>
 								<phase>package</phase>
 								<goals>
-									<goal>stop</goal>
 									<goal>run</goal>
 								</goals>
 							</execution>

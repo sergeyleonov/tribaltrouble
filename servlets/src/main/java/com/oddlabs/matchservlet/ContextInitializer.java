@@ -30,7 +30,7 @@ public final class ContextInitializer implements ServletContextListener {
 
 	private static DataSource getDataSource() {
 		try {
-			return InitialContext.doLookup("jdbc/matchDB");
+			return InitialContext.doLookup("java:comp/env/jdbc/mainDB");
 		} catch (NamingException e) {
 			throw new RuntimeException(e);
 		}

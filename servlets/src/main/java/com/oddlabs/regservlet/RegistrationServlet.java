@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.*;
-import java.math.BigInteger;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -32,6 +31,43 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 	private final static String LOCAL_KEYGEN_URL = "http://oddlabs.com/keygen_gg.php?";
 
 	private PrivateKey private_reg_key;
+
+	private static int parseInt(String val, int defaultValue) {
+		try {
+			return Integer.parseInt(val);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
+	private static String readReplyFromURL(URL url) throws IOException {
+		InputStream in = url.openStream();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		return reader.readLine();
+	}
+
+	private static String generateGGKey(String request_key_str, String gg_username) throws IOException {
+		URL keygen_url = new URL(LOCAL_KEYGEN_URL + "gg_key=" + request_key_str + "&username=" + gg_username);
+		return readReplyFromURL(keygen_url);
+	}
+
+	private static String normalizeKey(String key) throws IOException {
+		String result = key.toUpperCase();
+		result = result.replaceAll("-", "");
+		if (result.length() != 16) {
+			throw new IOException("Invalid key: " + key);
+		}
+		result = result.substring(0, 4) + '-' + result.substring(4, 8) + '-' + result.substring(8, 12) + '-' + result.substring(12, 16);
+		return result;
+	}
+
+	private static DataSource getDataSource() throws ServletException {
+		try {
+			return InitialContext.doLookup("java:comp/env/jdbc/mainDB");
+		} catch (NamingException e) {
+			throw new ServletException(e);
+		}
+	}
 
 	public final void init(ServletConfig config) throws ServletException {
 		super.init(config);
@@ -70,43 +106,6 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 		} catch (Exception e) {
 			log("got exception while registering: " + e);
 			res.sendError(500, e.toString());
-		}
-	}
-
-	private static int parseInt(String val, int defaultValue) {
-		try {
-			return Integer.parseInt(val);
-		} catch (NumberFormatException e) {
-			return defaultValue;
-		}
-	}
-
-	private static String readReplyFromURL(URL url) throws IOException {
-		InputStream in = url.openStream();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		return reader.readLine();
-	}
-
-	private static String generateGGKey(String request_key_str, String gg_username) throws IOException {
-		URL keygen_url = new URL(LOCAL_KEYGEN_URL + "gg_key=" + request_key_str + "&username=" + gg_username);
-		return readReplyFromURL(keygen_url);
-	}
-
-	private static String normalizeKey(String key) throws IOException {
-		String result = key.toUpperCase();
-		result = result.replaceAll("-", "");
-		if (result.length() != 16) {
-			throw new IOException("Invalid key: " + key);
-		}
-		result = result.substring(0, 4) + '-' + result.substring(4, 8) + '-' + result.substring(8, 12) + '-' + result.substring(12, 16);
-		return result;
-	}
-
-	private static DataSource getDataSource() throws ServletException {
-		try {
-			return InitialContext.doLookup("jdbc/regDB");
-		} catch (NamingException e) {
-			throw new ServletException(e);
 		}
 	}
 

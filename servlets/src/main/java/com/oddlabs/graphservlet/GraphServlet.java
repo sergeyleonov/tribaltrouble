@@ -26,7 +26,7 @@ public final class GraphServlet extends HttpServlet {
 
 	private static Connection getConnection() {
 		try {
-			DataSource dataSource = InitialContext.doLookup("jdbc/graphDB");
+			DataSource dataSource = InitialContext.doLookup("java:comp/env/jdbc/mainDB");
 			return dataSource.getConnection();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
