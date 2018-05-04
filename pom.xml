@@ -24,6 +24,8 @@
 		<app.release.version>1.0-SNAPSHOT</app.release.version>
 		<!--Java-->
 		<java.se.version>1.6</java.se.version>
+		<!--DB-->
+		<h2.version>1.4.190</h2.version>
 		<!--Maven-->
 		<maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
 	</properties>

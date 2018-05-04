@@ -17,7 +17,7 @@ public final strictfp class DBUtils {
 	private static DataSource ds;
 
 	public static void initConnection(String address, String user, String password) throws ClassNotFoundException {
-		Class.forName("com.mysql.jdbc.Driver");
+		Class.forName("org.h2.Driver");
 		GenericObjectPool connectionPool = new GenericObjectPool(null);
 		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(address, user, password);
 		KeyedObjectPoolFactory keyed_factory = new StackKeyedObjectPoolFactory();

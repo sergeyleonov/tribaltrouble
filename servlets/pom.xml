@@ -16,7 +16,6 @@
 	</parent>
 
 	<properties>
-		<h2.version>1.4.190</h2.version>
 		<!--Local launch-->
 		<tomcat.context.path>/oddlabs</tomcat.context.path>
 		<tomcat.port>8050</tomcat.port>
