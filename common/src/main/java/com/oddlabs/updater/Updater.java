@@ -1,25 +1,20 @@
 package com.oddlabs.updater;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.oddlabs.event.Deterministic;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public final strictfp class Updater {
 	private final static int THREAD_SLEEP = 10;
-	
+
 	private final UpdaterStatusThread status;
 	private final UpdateInfo update_info;
 	private final UpdateHandler handler;
 	private final Deterministic deterministic;
 	private boolean done;
-	
+
 	private class UpdaterStatusThread implements Runnable {
 		private final Thread thread;
 		private final Process updater_process;
@@ -34,17 +29,17 @@ public final strictfp class Updater {
 			File relative_path = new File(System.getProperty("user.dir"), executable);
 			if (relative_path.exists())
 				executable = relative_path.getAbsolutePath();
-System.out.println("executable = " + executable);
+			System.out.println("executable = " + executable);
 			String[] cmd_line = {
-				executable,
-				"-cp", update_info.getClasspath(), 
-				"-Xmx128000000",
-				"com.oddlabs.loader.Loader",
-				update_info.getJavaCommand(),
-				update_info.getClasspath(),
-				"com.oddlabs.updater.UpdaterProcess", 
-				workspace_path.getAbsolutePath(), root.getAbsolutePath()};
-System.out.println("workspace_path.getAbsolutePath() = " + workspace_path.getAbsolutePath() + " | root.getAbsolutePath() = " + root.getAbsolutePath());
+					executable,
+					"-cp", update_info.getClasspath(),
+					"-Xmx128000000",
+					"com.oddlabs.loader.Loader",
+					update_info.getJavaCommand(),
+					update_info.getClasspath(),
+					"com.oddlabs.updater.UpdaterProcess",
+					workspace_path.getAbsolutePath(), root.getAbsolutePath()};
+			System.out.println("workspace_path.getAbsolutePath() = " + workspace_path.getAbsolutePath() + " | root.getAbsolutePath() = " + root.getAbsolutePath());
 			try {
 				this.updater_process = Runtime.getRuntime().exec(cmd_line);
 				System.out.println("Started update process");
@@ -81,10 +76,10 @@ System.out.println("workspace_path.getAbsolutePath() = " + workspace_path.getAbs
 				ObjectInputStream status_in = new ObjectInputStream(process_in);
 				while (true) {
 					try {
-						UpdateStatus status = (UpdateStatus)status_in.readObject();
+						UpdateStatus status = (UpdateStatus) status_in.readObject();
 						if (status.getKind() == UpdateStatus.UPDATE_COMPLETE) {
 							File root = update_info.getDataDir().getParentFile();
-							File temp_data = new File(root, UpdaterProcess.TEMP_DATA_DIR);
+							File temp_data = new File(root, "");
 							File data_dir = new File(root, UpdateInfo.DATA_DIR_PREFIX + System.currentTimeMillis());
 							if (temp_data.renameTo(data_dir))
 								addStatus(status);
@@ -135,11 +130,11 @@ System.out.println("workspace_path.getAbsolutePath() = " + workspace_path.getAbs
 				throw new RuntimeException("Unknown update status kind: " + status.getKind());
 		}
 	}
-	
+
 	public final void updateStatus() {
-		List status_list = (List)deterministic.log(deterministic.isPlayback() ? null : status.getStatusList());
+		List status_list = (List) deterministic.log(deterministic.isPlayback() ? null : status.getStatusList());
 		while (status_list.size() > 0) {
-			UpdateStatus status = (UpdateStatus)status_list.remove(0);
+			UpdateStatus status = (UpdateStatus) status_list.remove(0);
 			processStatus(status);
 		}
 		try {
@@ -154,7 +149,7 @@ System.out.println("workspace_path.getAbsolutePath() = " + workspace_path.getAbs
 			if (!done)
 				status.cancel();
 	}
-	
+
 	public Updater(Deterministic deterministic, UpdateInfo update_info, UpdateHandler handler) {
 		this.deterministic = deterministic;
 		this.handler = handler;
