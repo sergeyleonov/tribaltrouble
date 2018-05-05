@@ -27,6 +27,30 @@
 		</dependency>
 	</dependencies>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<resources>
+						<resource>
+							<directory>
+								${project.basedir}/src/main/resources
+							</directory>
+							<excludes>
+								<exclude>**/*.ttf</exclude>
+								<exclude>**/geometry/**</exclude>
+								<exclude>**/textures/**</exclude>
+							</excludes>
+						</resource>
+					</resources>
+					<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 	<!--todo: [] filter resources to avoid unnecessary copying to target-->
 	<!--todo: [] pack and use as dependency in tt-->
 	<profiles>
@@ -41,7 +65,7 @@
 						<executions>
 							<execution>
 								<id>convert-textures</id>
-								<phase>verify</phase>
+								<phase>generate-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -52,58 +76,58 @@
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/pixelperfect"/>
+											<arg value="${project.basedir}/src/main/resources/textures/pixelperfect"/>
 											<arg value="-flip"/>
 											<arg value="-format"/>
 											<arg value="image"/>
-											<arg value="${project.build.directory}/textures/gui"/>
+											<arg value="${project.build.outputDirectory}/textures/gui"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/gui"/>
+											<arg value="${project.basedir}/src/main/resources/textures/gui"/>
 											<arg value="-flip"/>
 											<arg value="-format"/>
 											<arg value="dxtn"/>
-											<arg value="${project.build.directory}/textures/gui"/>
+											<arg value="${project.build.outputDirectory}/textures/gui"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/pointer"/>
+											<arg value="${project.basedir}/src/main/resources/textures/pointer"/>
 											<arg value="-flip"/>
 											<arg value="-format"/>
 											<arg value="image"/>
-											<arg value="${project.build.directory}/textures/gui"/>
+											<arg value="${project.build.outputDirectory}/textures/gui"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/effects"/>
+											<arg value="${project.basedir}/src/main/resources/textures/effects"/>
 											<arg value="-flip"/>
 											<arg value="-mipmaps"/>
 											<arg value="-format"/>
 											<arg value="dxtn"/>
-											<arg value="${project.build.directory}/textures/effects"/>
+											<arg value="${project.build.outputDirectory}/textures/effects"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/font"/>
+											<arg value="${project.basedir}/src/main/resources/textures/font"/>
 											<arg value="-flip"/>
 											<arg value="-format"/>
 											<arg value="dxtn"/>
-											<arg value="${project.build.directory}/textures/font"/>
+											<arg value="${project.build.outputDirectory}/textures/font"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/models"/>
+											<arg value="${project.basedir}/src/main/resources/textures/models"/>
 											<arg value="-flip"/>
 											<arg value="-gamma"/>
 											<arg value="0.45454545454545453"/>
@@ -112,19 +136,19 @@
 											<arg value="2.2"/>
 											<arg value="-format"/>
 											<arg value="dxtn"/>
-											<arg value="${project.build.directory}/textures/models"/>
+											<arg value="${project.build.outputDirectory}/textures/models"/>
 										</java>
 										<java failonerror="true" fork="yes"
 											  classpath="${runtime.classpath};${pom.basedir}/../lib/png.jar;${pom.basedir}/../lib/jsquish.jar;${pom.basedir}/../lib/lwjgl.jar"
 											  classname="com.oddlabs.imageutil.Convert">
 											<jvmarg value="-ea"/>
-											<arg value="${project.build.outputDirectory}/textures/teamdecals"/>
+											<arg value="${project.basedir}/src/main/resources/textures/teamdecals"/>
 											<arg value="-half"/>
 											<arg value="-flip"/>
 											<arg value="-mipmaps"/>
 											<arg value="-format"/>
 											<arg value="dxtn"/>
-											<arg value="${project.build.directory}/textures/models"/>
+											<arg value="${project.build.outputDirectory}/textures/models"/>
 										</java>
 									</target>
 								</configuration>
@@ -162,7 +186,7 @@
 											<arg value="1024"/>
 											<arg value="32000"/>
 											<arg value="/fonts"/>
-											<arg value="${project.build.outputDirectory}"/>
+											<arg value="${project.basedir}/src/main/resources"/>
 											<arg value="${project.build.outputDirectory}"/>
 											<arg value="/textures/font"/>
 										</java>
@@ -175,7 +199,7 @@
 											<arg value="1024"/>
 											<arg value="384"/>
 											<arg value="/fonts"/>
-											<arg value="${project.build.outputDirectory}"/>
+											<arg value="${project.basedir}/src/main/resources"/>
 											<arg value="${project.build.outputDirectory}"/>
 											<arg value="/textures/font"/>
 										</java>
@@ -198,7 +222,7 @@
 						<executions>
 							<execution>
 								<id>build-geometry</id>
-								<phase>verify</phase>
+								<phase>generate-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -212,8 +236,8 @@
 											<!--32m is not enough-->
 											<!--<jvmarg value="-Xmx64000000"/>-->
 											<arg value="geometry.xml"/>
+											<arg value="${project.basedir}/src/main/resources/geometry"/>
 											<arg value="${project.build.outputDirectory}/geometry"/>
-											<arg value="${project.build.directory}/geometry"/>
 										</java>
 									</target>
 								</configuration>
@@ -247,7 +271,7 @@
 											  classname="com.oddlabs.converter2.ConvertToBinary">
 											<jvmarg value="-ea"/>
 											<arg value="geometry.xml"/>
-											<arg value="${project.build.outputDirectory}/geometry"/>
+											<arg value="${project.basedir}/src/main/resources/geometry"/>
 											<arg value="${project.build.directory}/geometry"/>
 										</java>
 									</target>

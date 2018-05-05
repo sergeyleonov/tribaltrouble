@@ -21,6 +21,11 @@
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.oddlabs.tribaltrouble</groupId>
+			<artifactId>resources</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.lwjgl.lwjgl</groupId>
 			<artifactId>lwjgl</artifactId>
 			<version>1.0</version>
@@ -51,6 +56,40 @@
 	</dependencies>
 
 	<profiles>
+		<profile>
+			<id>run-game</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>run-game</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!--todo: [] run under java 6-->
+										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
+										<java failonerror="true" fork="yes"
+											  jvm="C:\Program Files (x86)\Java\jre1.6.0_02\bin\java"
+											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl.jar;${pom.basedir}/../lib/lwjgl_util.jar;${pom.basedir}/../lib/jorbis.jar"
+											  classname="com.oddlabs.tt.Main">
+											<jvmarg value="-ea"/>
+											<jvmarg value="-Djava.library.path=${project.basedir}/../common/lib/native"/>
+										</java>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>generate-textures</id>
 			<build>

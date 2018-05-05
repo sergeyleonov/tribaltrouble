@@ -18,17 +18,16 @@ Note that all the commands are run against the project root (where this readme f
 
 #### Build the game resources
 ```
-mvn clean install -P build-geometry, convert-textures, generate-textures
+mvn clean install -P build-geometry, convert-textures
 ```
 
 #### Launch the game
 ```
-cd tribaltrouble
-java com.oddlabs.tt.Main
--Djava.library.path=C:\Users\sbt-leonov-ss\tribaltrouble\common\lib\native
+cd tt
+mvn clean install -P run-game
 ```
 
-####
+#### Launch the server
 Server is launched separately
 ```
 cd servlets
