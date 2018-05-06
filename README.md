@@ -2,7 +2,7 @@ Tribal Trouble (Y18 edition)
 ==============
 User- and developer-friendly revision of Tribal Trouble game originally released by Oddlabs in 2004 and later published under GPL2 license.
 
-The project was cloned from [sunenielsen](https://github.com/sunenielsen/tribaltrouble.git) public repo and reworked. You can find the original readme below. Note that most commands in the old readme will not work. For the actual instructions refer to the main part of this readme.
+The project was cloned from [sunenielsen](https://github.com/sunenielsen/tribaltrouble.git) public repo and reworked. You can find the original readme below. Note that the build commands in the old readme will not work for this release. For the actual instructions refer to the main part of this readme.
 
 Prerequisites
 --------
@@ -18,7 +18,7 @@ Note that all the commands are run against the project root (where this readme f
 
 #### Build the game resources
 ```
-mvn clean install -P build-geometry, convert-textures
+mvn clean install -P build-geometry,convert-textures
 ```
 
 #### Launch the game
@@ -39,8 +39,15 @@ clean install -P run-servlets
 mvn clean install -P build-geometry,convert-textures,run-game
 ```
 
+#### Launch from the bundle
+```
+java -cp "common-1.0-SNAPSHOT.jar;resources-1.0-SNAPSHOT.jar;tt-1.0-SNAPSHOT.jar;lib/lwjgl.jar;lib/lwjgl_util.jar;lib/jorbis.jar" -Djava.library.path=lib/native com.oddlabs.tt.Main
+```
+
 Tribal Trouble (Original Readme)
 ==============
+**The following is referenced from the [original repo](https://github.com/sunenielsen/tribaltrouble)**
+
 Tribal Trouble is a realtime strategy game released by Oddlabs in 2004. In 2014 the source was released under GPL2 license, and can be found in this repository.
 
 The source is released "as is", and Oddlabs will not be available for help building it, modifying it or any other kind of support. Due to the age of the game, it is reasonable to expect there to be some problems on some systems. Oddlabs has not released updates to the game for years, and do not intend to start updating it now that it is open sourced.

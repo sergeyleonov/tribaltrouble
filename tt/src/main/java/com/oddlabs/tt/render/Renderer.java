@@ -71,33 +71,23 @@ import static com.oddlabs.util.Utils.LOG_FILES;
 
 public final strictfp class Renderer {
 
-	private final static FloatBuffer matrix_buf = BufferUtils.createFloatBuffer(16);
+	private static final FloatBuffer matrix_buf = BufferUtils.createFloatBuffer(16);
+	private static final Renderer renderer_instance = new Renderer();
+	private static final StatCounter fps = new StatCounter(10);
 
 	private static GLStateStack display_state_stack = new GLStateStack();
-
-	private final static Renderer renderer_instance = new Renderer();
-	private final static StatCounter fps = new StatCounter(10);
 	private static int num_triangles_rendered;
-
 	private static RegistrationClient registration_client;
-
 	private static boolean grab_frames = false;
-
-	private final Locale default_locale = new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry(), "default");
-	private final StrictMatrix4f proj = new StrictMatrix4f();
-
 	private static AbstractAudioPlayer music;
 	private static String music_path;
 	private static TimerAnimation music_timer;
-
-	private int fallback_val = 0;
-
 	private static boolean finished = false;
 
-	private static Label trial_label;
+	private final Locale default_locale = new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry(), "default");
+	private final StrictMatrix4f proj = new StrictMatrix4f();
 	private final CameraState frustum_state = new CameraState();
-	private CounterLabel trial_counter = null;
-	private Label games_left_label;
+
 	private boolean movie_recording_started = false;
 	private AmbientAudio ambient;
 
@@ -130,6 +120,152 @@ public final strictfp class Renderer {
 		return renderer_instance;
 	}
 
+	public static void multProjection(StrictMatrix4f matrix) {
+		StrictGLU.gluPerspective(matrix,
+				Globals.FOV,
+				LocalInput.getViewAspect(),
+				Globals.VIEW_MIN,
+				Globals.VIEW_MAX);
+	}
+
+	public static void registerTrianglesRendered(int count) {
+		num_triangles_rendered += count;
+	}
+
+	public static int getTrianglesRendered() {
+		return num_triangles_rendered;
+	}
+
+	public static void shutdownWithQuitScreen(GUIRoot gui_root) {
+		if (!isRegistered()) {
+			new QuitScreen(gui_root, gui_root.getDelegate().getCamera());
+		} else
+			shutdown();
+	}
+
+	public static void shutdown() {
+		finished = true;
+	}
+
+	public static boolean isFinished() {
+		return finished;
+	}
+
+	public final Locale getDefaultLocale() {
+		return default_locale;
+	}
+
+	public static void startMenu(NetworkSelector network, GUI gui) {
+		setupMainMenu(network, gui, false);
+	}
+	public final void startMovieRecording() {
+		System.out.println("ACTION!");
+		movie_recording_started = true;
+	}
+
+	public static void resetInput() {
+		LocalInput.resetKeys();
+	}
+
+	public static void dumpWindowInfo() {
+		int r = GLUtils.getGLInteger(GL11.GL_RED_BITS);
+		int g = GLUtils.getGLInteger(GL11.GL_GREEN_BITS);
+		int b = GLUtils.getGLInteger(GL11.GL_BLUE_BITS);
+		int a = GLUtils.getGLInteger(GL11.GL_ALPHA_BITS);
+		int depth = GLUtils.getGLInteger(GL11.GL_DEPTH_BITS);
+		int stencil = GLUtils.getGLInteger(GL11.GL_STENCIL_BITS);
+		int sample_buffers = 0;
+		int samples = 0;
+		if (GLContext.getCapabilities().GL_ARB_multisample) {
+			sample_buffers = GLUtils.getGLInteger(ARBMultisample.GL_SAMPLE_BUFFERS_ARB);
+			samples = GLUtils.getGLInteger(ARBMultisample.GL_SAMPLES_ARB);
+		}
+		System.out.println("r = " + r + " | g = " + g + " | b = " + b + " | a = " + a + " | depth = " + depth
+				+ " | stencil = " + stencil + " | sample_buffers = " + sample_buffers + " | samples = " + samples);
+	}
+
+	public final void toggleSound() {
+		Settings.getSettings().play_sfx = !Settings.getSettings().play_sfx;
+		if (Settings.getSettings().play_sfx) {
+			AudioManager.getManager().startSources();
+		} else {
+			AudioManager.getManager().stopSources();
+		}
+	}
+
+	public final void toggleMusic() {
+		Settings.getSettings().play_music = !Settings.getSettings().play_music;
+		if (Settings.getSettings().play_music) {
+			initMusicPlayer();
+		} else if (music != null) {
+			music.stop(2.5f, Settings.getSettings().music_gain);
+		}
+	}
+
+	public static void setMusicPath(String music_path, float delay) {
+		if (AL.isCreated()) {
+			if (music != null && Settings.getSettings().play_music) {
+				music.stop(2.5f, Settings.getSettings().music_gain);
+			}
+			Renderer.music_path = music_path;
+			if (Settings.getSettings().play_music) {
+				if (music_timer != null)
+					music_timer.stop();
+				music_timer = new TimerAnimation(new MusicTimer(), delay);
+				music_timer.start();
+			}
+		}
+	}
+
+	public static AbstractAudioPlayer getMusicPlayer() {
+		return music;
+	}
+
+	public static void initGL() {
+		VBO.releaseAll();
+		GL11.glFrontFace(GL11.GL_CCW);
+		GL11.glCullFace(GL11.GL_BACK);
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		GL11.glPixelStorei(GL11.GL_PACK_ROW_LENGTH, 0);
+		GL11.glPixelStorei(GL11.GL_PACK_SKIP_PIXELS, 0);
+		GL11.glPixelStorei(GL11.GL_PACK_SKIP_ROWS, 0);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+		GL11.glPixelStorei(GL11.GL_PACK_SWAP_BYTES, 0);
+
+		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+		GL11.glPixelStorei(GL11.GL_UNPACK_SWAP_BYTES, 0);
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glDepthFunc(GL11.GL_LEQUAL);
+		GL11.glShadeModel(GL11.GL_SMOOTH);
+//		GL11.glAlphaFunc(GL11.GL_GREATER, Globals.ALPHA_CUTOFF);
+		// Setup landscape texture coordinate gen
+		GL11.glTexGeni(GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
+		GL11.glTexGeni(GL11.GL_T, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_REPLACE);
+		GLState.activeTexture(GL13.GL_TEXTURE1);
+		GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_DECAL);
+		GL11.glTexGeni(GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
+		GL11.glTexGeni(GL11.GL_T, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
+		GLState.activeTexture(GL13.GL_TEXTURE0);
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+		GL11.glPointSize(7.0f);
+		clearScreen();
+		GL11.glClearDepth(1.0);
+	}
+
+	public static void clearScreen() {
+		GL11.glClearColor(0f, 0f, 0f, 0f);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+//		GL11.glClearColor(1f, 0f, 1f, 0f);
+	}
+
 	private void runGameLoop(NetworkSelector network, GUI gui) {
 		AnimationManager.runGameLoop(network, gui, grab_frames);
 	}
@@ -153,43 +289,12 @@ public final strictfp class Renderer {
 		GL11.glLoadMatrix(matrix_buf);
 	}
 
-	public static void multProjection(StrictMatrix4f matrix) {
-		StrictGLU.gluPerspective(matrix,
-				Globals.FOV,
-				LocalInput.getViewAspect(),
-				Globals.VIEW_MIN,
-				Globals.VIEW_MAX);
-	}
-
-	public static void registerTrianglesRendered(int count) {
-		num_triangles_rendered += count;
-	}
-
-	public static int getTrianglesRendered() {
-		return num_triangles_rendered;
-	}
-
 	private void display(GUI gui) {
 		num_triangles_rendered = 0;
 		fps.updateDelta(System.currentTimeMillis());
 		NativeResource.deleteFinalized();
 		setupMatrices(gui.getGUIRoot());
 		gui.render(ambient, frustum_state);
-	}
-
-	public static void shutdownWithQuitScreen(GUIRoot gui_root) {
-		if (!isRegistered()) {
-			new QuitScreen(gui_root, gui_root.getDelegate().getCamera());
-		} else
-			shutdown();
-	}
-
-	public static void shutdown() {
-		finished = true;
-	}
-
-	public static boolean isFinished() {
-		return finished;
 	}
 
 	private static void deleteLog(File log) {
@@ -335,13 +440,7 @@ public final strictfp class Renderer {
 			}
 		}
 		HttpRequestParameters request_parameters = createRegistrationParameters();
-		File registration_file = new File(game_dir, Globals.REG_FILE_NAME);
-		if (!registration_file.canRead()) {
-			File install_reg_file = new File(Utils.getInstallDir(), Globals.REG_FILE_NAME);
-			if (install_reg_file.canRead()) {
-				registration_file = install_reg_file;
-			}
-		}
+		File registration_file = getRegistrationFile(game_dir);
 
 		new LocalInput();
 
@@ -443,6 +542,26 @@ public final strictfp class Renderer {
 		}
 	}
 
+	private File getRegistrationFile(File gameDir) {
+		File registrationFile = new File(gameDir, Globals.REG_FILE_NAME);
+		if (registrationFile.canRead()) {
+			return registrationFile;
+		}
+		registrationFile = new File(Utils.getInstallDir(), Globals.REG_FILE_NAME);
+		if (registrationFile.canRead()) {
+			return registrationFile;
+		}
+		try {
+			registrationFile = new File(com.oddlabs.util.Utils.makeURL("/" + Globals.REG_FILE_NAME).getFile());
+			if (registrationFile.canRead()) {
+				return registrationFile;
+			}
+		} finally {
+			System.out.println("No registration file found");
+		}
+		return registrationFile;
+	}
+
 	private HttpRequestParameters createRegistrationParameters() {
 		String affiliate_id = "";
 		try {
@@ -455,10 +574,6 @@ public final strictfp class Renderer {
 		parameters.put("current_affiliate_id", Settings.getSettings().affiliate_id);
 		parameters.put("affiliate_id", affiliate_id);
 		return new HttpRequestParameters("https://" + Settings.getSettings().registration_address + "/oddlabs/registration", parameters);
-	}
-
-	public final Locale getDefaultLocale() {
-		return default_locale;
 	}
 
 	private static void failedOpenGL(LWJGLException e) {
@@ -535,10 +650,6 @@ public final strictfp class Renderer {
 			System.out.println("Could not access preferences");
 			return value;
 		}
-	}
-
-	public static void startMenu(NetworkSelector network, GUI gui) {
-		setupMainMenu(network, gui, false);
 	}
 
 	private static void setupMainMenu(final NetworkSelector network, GUI gui, final boolean first_progress) {
@@ -618,11 +729,6 @@ public final strictfp class Renderer {
 		return LocalEventQueue.getQueue().getDeterministic().log(is_network_created);
 	}
 
-	public final void startMovieRecording() {
-		System.out.println("ACTION!");
-		movie_recording_started = true;
-	}
-
 	private void cleanup() {
 		System.out.println("Cleaning up...");
 		LocalEventQueue.getQueue().dispose();
@@ -630,30 +736,9 @@ public final strictfp class Renderer {
 		System.out.println("Cleanup complete. Exiting");
 	}
 
-	public static void resetInput() {
-		LocalInput.resetKeys();
-	}
-
 	private static void destroyNative() {
 		destroyAL();
 		Display.destroy();
-	}
-
-	public static void dumpWindowInfo() {
-		int r = GLUtils.getGLInteger(GL11.GL_RED_BITS);
-		int g = GLUtils.getGLInteger(GL11.GL_GREEN_BITS);
-		int b = GLUtils.getGLInteger(GL11.GL_BLUE_BITS);
-		int a = GLUtils.getGLInteger(GL11.GL_ALPHA_BITS);
-		int depth = GLUtils.getGLInteger(GL11.GL_DEPTH_BITS);
-		int stencil = GLUtils.getGLInteger(GL11.GL_STENCIL_BITS);
-		int sample_buffers = 0;
-		int samples = 0;
-		if (GLContext.getCapabilities().GL_ARB_multisample) {
-			sample_buffers = GLUtils.getGLInteger(ARBMultisample.GL_SAMPLE_BUFFERS_ARB);
-			samples = GLUtils.getGLInteger(ARBMultisample.GL_SAMPLES_ARB);
-		}
-		System.out.println("r = " + r + " | g = " + g + " | b = " + b + " | a = " + a + " | depth = " + depth
-				+ " | stencil = " + stencil + " | sample_buffers = " + sample_buffers + " | samples = " + samples);
 	}
 
 	private void initNative(boolean crashed, NetworkSelector network) throws LWJGLException {
@@ -759,46 +844,13 @@ public final strictfp class Renderer {
 		}
 	}
 
-	public final void toggleSound() {
-		Settings.getSettings().play_sfx = !Settings.getSettings().play_sfx;
-		if (Settings.getSettings().play_sfx) {
-			AudioManager.getManager().startSources();
-		} else {
-			AudioManager.getManager().stopSources();
-		}
-	}
-
-	public final void toggleMusic() {
-		Settings.getSettings().play_music = !Settings.getSettings().play_music;
-		if (Settings.getSettings().play_music) {
-			initMusicPlayer();
-		} else if (music != null) {
-			music.stop(2.5f, Settings.getSettings().music_gain);
-		}
-	}
-
 	private static void initMusicPlayer() {
 		music = AudioManager.getManager().newAudio(new AudioParameters(
 				music_path, 0f, 0f, 0f, AudioPlayer.AUDIO_RANK_MUSIC, AudioPlayer.AUDIO_DISTANCE_MUSIC,
 				Settings.getSettings().music_gain, 1f, 1f, true, true, true));
 	}
 
-	public static void setMusicPath(String music_path, float delay) {
-		if (AL.isCreated()) {
-			if (music != null && Settings.getSettings().play_music) {
-				music.stop(2.5f, Settings.getSettings().music_gain);
-			}
-			Renderer.music_path = music_path;
-			if (Settings.getSettings().play_music) {
-				if (music_timer != null)
-					music_timer.stop();
-				music_timer = new TimerAnimation(new MusicTimer(), delay);
-				music_timer.start();
-			}
-		}
-	}
-
-	private final static class MusicTimer implements Updatable {
+	private static final class MusicTimer implements Updatable {
 		public final void update(Object anim) {
 			if (music_timer != null) {
 				music_timer.stop();
@@ -808,10 +860,6 @@ public final strictfp class Renderer {
 				initMusicPlayer();
 			}
 		}
-	}
-
-	public static AbstractAudioPlayer getMusicPlayer() {
-		return music;
 	}
 
 	private static void destroyAL() {
@@ -844,51 +892,6 @@ public final strictfp class Renderer {
 		float_array.rewind();
 		GL11.glMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE, float_array);
 		Display.update();
-	}
-
-	public static void initGL() {
-		VBO.releaseAll();
-		GL11.glFrontFace(GL11.GL_CCW);
-		GL11.glCullFace(GL11.GL_BACK);
-		GL11.glEnable(GL11.GL_CULL_FACE);
-		GL11.glPixelStorei(GL11.GL_PACK_ROW_LENGTH, 0);
-		GL11.glPixelStorei(GL11.GL_PACK_SKIP_PIXELS, 0);
-		GL11.glPixelStorei(GL11.GL_PACK_SKIP_ROWS, 0);
-		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
-		GL11.glPixelStorei(GL11.GL_PACK_SWAP_BYTES, 0);
-
-		GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
-		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
-		GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
-		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
-		GL11.glPixelStorei(GL11.GL_UNPACK_SWAP_BYTES, 0);
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		GL11.glDepthFunc(GL11.GL_LEQUAL);
-		GL11.glShadeModel(GL11.GL_SMOOTH);
-//		GL11.glAlphaFunc(GL11.GL_GREATER, Globals.ALPHA_CUTOFF);
-		// Setup landscape texture coordinate gen
-		GL11.glTexGeni(GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
-		GL11.glTexGeni(GL11.GL_T, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_REPLACE);
-		GLState.activeTexture(GL13.GL_TEXTURE1);
-		GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_DECAL);
-		GL11.glTexGeni(GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
-		GL11.glTexGeni(GL11.GL_T, GL11.GL_TEXTURE_GEN_MODE, GL11.GL_OBJECT_LINEAR);
-		GLState.activeTexture(GL13.GL_TEXTURE0);
-		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-		GL11.glPointSize(7.0f);
-		clearScreen();
-		GL11.glClearDepth(1.0);
-	}
-
-	public static void clearScreen() {
-		GL11.glClearColor(0f, 0f, 0f, 0f);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-//		GL11.glClearColor(1f, 0f, 1f, 0f);
 	}
 
 	private static class DummyNotificationListener implements NotificationListener {
