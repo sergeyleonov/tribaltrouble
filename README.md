@@ -34,6 +34,11 @@ cd servlets
 clean install -P run-servlets
 ```
 
+#### Build and run the game
+```
+mvn clean install -P build-geometry,convert-textures,run-game
+```
+
 Tribal Trouble (Original Readme)
 ==============
 Tribal Trouble is a realtime strategy game released by Oddlabs in 2004. In 2014 the source was released under GPL2 license, and can be found in this repository.

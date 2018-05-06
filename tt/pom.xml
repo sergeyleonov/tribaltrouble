@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>tt</artifactId>
@@ -61,28 +61,24 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<!--todo: enable or replace assertions-->
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
 							<execution>
 								<id>run-game</id>
 								<phase>verify</phase>
 								<goals>
-									<goal>run</goal>
+									<goal>java</goal>
 								</goals>
 								<configuration>
-									<target>
-										<!--todo: [] run under java 6-->
-										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
-										<java failonerror="true" fork="yes"
-											  jvm="C:\Program Files (x86)\Java\jre1.6.0_02\bin\java"
-											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl.jar;${pom.basedir}/../lib/lwjgl_util.jar;${pom.basedir}/../lib/jorbis.jar"
-											  classname="com.oddlabs.tt.Main">
-											<jvmarg value="-ea"/>
-											<jvmarg value="-Djava.library.path=${project.basedir}/../common/lib/native"/>
-										</java>
-									</target>
+									<mainClass>com.oddlabs.tt.Main</mainClass>
+									<systemProperties>
+										<systemProperty>
+											<key>org.lwjgl.librarypath</key>
+											<value>${project.basedir}/../lib/native</value>
+										</systemProperty>
+									</systemProperties>
 								</configuration>
 							</execution>
 						</executions>
@@ -91,33 +87,30 @@
 			</build>
 		</profile>
 		<profile>
-			<id>generate-textures</id>
+			<id>generate-tt-textures</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>generate-textures</id>
+								<id>generate-tt-textures</id>
 								<phase>verify</phase>
 								<goals>
-									<goal>run</goal>
+									<goal>java</goal>
 								</goals>
 								<configuration>
-									<target>
-										<!--todo: [] run under java 6-->
-										<property name="runtime.classpath" refid="maven.runtime.classpath"/>
-										<java failonerror="true" fork="yes"
-											  jvm="C:\Program Files (x86)\Java\jre1.6.0_02\bin\java"
-											  classpath="${runtime.classpath};${pom.basedir}/../lib/lwjgl.jar;${pom.basedir}/../lib/lwjgl_util.jar"
-											  classname="com.oddlabs.texturegenerator.TextureGenerator">
-											<jvmarg value="-ea"/>
-											<jvmarg value="-Djava.library.path=${project.basedir}/../common/lib/native"/>
-											<arg value="${project.build.outputDirectory}/geometry"/>
-										</java>
-									</target>
+									<mainClass>com.oddlabs.texturegenerator.TextureGenerator</mainClass>
+									<systemProperties>
+										<systemProperty>
+											<key>org.lwjgl.librarypath</key>
+											<value>${project.basedir}/../lib/native</value>
+										</systemProperty>
+									</systemProperties>
+									<arguments>
+										<argument>${project.build.outputDirectory}/geometry</argument>
+									</arguments>
 								</configuration>
 							</execution>
 						</executions>
