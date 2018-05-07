@@ -320,7 +320,6 @@ public final strictfp class Renderer {
 		long start_time = System.currentTimeMillis();
 		boolean first_frame = true;
 		System.out.println("********** Running tt **********");
-		System.out.flush();
 		UpdateInfo update_info = null;
 		String platform_dir;
 		switch (LWJGLUtil.getPlatform()) {
@@ -336,6 +335,7 @@ public final strictfp class Renderer {
 				break;
 		}
 		String game_dir_path = System.getProperty("user.home") + File.separator + platform_dir + Globals.GAME_NAME;
+		System.out.println("game_dir_path=" + game_dir_path);
 		File game_dir = new File(game_dir_path);
 		boolean eventload = false;
 		boolean zipped = false;
@@ -505,8 +505,9 @@ public final strictfp class Renderer {
 			while (!finished) {
 				runGameLoop(network, gui);
 				if (Display.isVisible()) {
-					if (AL.isCreated())
+					if (AL.isCreated()) {
 						AL10.alListenerf(AL10.AL_GAIN, 1f);
+					}
 					if (reset_keyboard) {
 						reset_keyboard = false;
 						LocalInput.getLocalInput().resetKeyboard();
@@ -556,7 +557,7 @@ public final strictfp class Renderer {
 			if (registrationFile.canRead()) {
 				return registrationFile;
 			}
-		} finally {
+		} catch (Exception e) {
 			System.out.println("No registration file found");
 		}
 		return registrationFile;
