@@ -12,7 +12,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,25 +29,26 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 	private final static String GG_IGNITION_URL = "http://www.garagegames.com/ignition/validate.php?ProductId=0xFA00E87&Key=";
 	private final static String LOCAL_KEYGEN_URL = "http://oddlabs.com/keygen_gg.php?";
 
-	private PrivateKey private_reg_key;
+	private PrivateKey privateRegKey;
 
-	private static int parseInt(String val, int defaultValue) {
+	private static int parseIntOrZero(String val) {
 		try {
 			return Integer.parseInt(val);
 		} catch (NumberFormatException e) {
-			return defaultValue;
+			return 0;
 		}
 	}
 
 	private static String readReplyFromURL(URL url) throws IOException {
 		InputStream in = url.openStream();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		return reader.readLine();
+		String line = reader.readLine();
+		reader.close();
+		return line;
 	}
 
-	private static String generateGGKey(String request_key_str, String gg_username) throws IOException {
-		URL keygen_url = new URL(LOCAL_KEYGEN_URL + "gg_key=" + request_key_str + "&username=" + gg_username);
-		return readReplyFromURL(keygen_url);
+	private static String generateGGKey(String requestKeyStr, String ggUsername) throws IOException {
+		return readReplyFromURL(new URL(LOCAL_KEYGEN_URL + "gg_key=" + requestKeyStr + "&username=" + ggUsername));
 	}
 
 	private static String normalizeKey(String key) throws IOException {
@@ -73,72 +73,68 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 		super.init(config);
 		try {
 			String password = config.getInitParameter("reg_key_pass");
-			Cipher decrypt_cipher = KeyManager.createPasswordCipherFromPassword(password.toCharArray(), Cipher.DECRYPT_MODE);
-			private_reg_key = PasswordKey.readPrivateKey(decrypt_cipher, RegServiceInterface.PRIVATE_KEY_FILE, RegServiceInterface.KEY_ALGORITHM);
+			Cipher decryptCipher = KeyManager.createPasswordCipherFromPassword(password.toCharArray(), Cipher.DECRYPT_MODE);
+			privateRegKey = PasswordKey.readPrivateKey(decryptCipher, RegServiceInterface.PRIVATE_KEY_FILE, RegServiceInterface.KEY_ALGORITHM);
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
 	}
 
-	public final void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-		String request_key_str = normalizeKey(req.getParameter("key"));
-		String affiliate_id = req.getParameter("affiliate_id");
-		String current_affiliate_id = req.getParameter("current_affiliate_id");
-		int version = parseInt(req.getParameter("version"), 0);
-		boolean timelimit = Boolean.valueOf(req.getParameter("timelimit"));
-		int maxtime = parseInt(req.getParameter("maxtime"), 0);
-		boolean forcequit = Boolean.valueOf(req.getParameter("forcequit"));
-		int maxgames = parseInt(req.getParameter("maxgames"), 0);
-
-		log("Oddlabs: got key request: remote host = " + req.getRemoteHost() + " | key_str = " + request_key_str + " | current_affiliate_id = " + current_affiliate_id + " | affiliate_id = " + affiliate_id + " | version = " + version + " | timelimit = " + timelimit + " | maxtime = " + maxtime + " | forcequit = " + forcequit + " | maxgames = " + maxgames);
-
-		String key_str = createKey(request_key_str, current_affiliate_id);
-		long key = RegistrationKey.decode(key_str);
+	public final void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String requestKey = normalizeKey(request.getParameter("key"));
+		String affiliateId = request.getParameter("affiliate_id");
+		String currentAffiliateId = request.getParameter("current_affiliate_id");
+		int version = parseIntOrZero(request.getParameter("version"));
+		boolean timelimit = Boolean.valueOf(request.getParameter("timelimit"));
+		int maxtime = parseIntOrZero(request.getParameter("maxtime"));
+		boolean forcequit = Boolean.valueOf(request.getParameter("forcequit"));
+		int maxgames = parseIntOrZero(request.getParameter("maxgames"));
+		log("Oddlabs: got key request: remote host = " + request.getRemoteHost() + " | key_str = " + requestKey + " | current_affiliate_id = " + currentAffiliateId + " | affiliate_id = " + affiliateId + " | version = " + version + " | timelimit = " + timelimit + " | maxtime = " + maxtime + " | forcequit = " + forcequit + " | maxgames = " + maxgames);
+		String keyString = createKey(requestKey, currentAffiliateId);
+		long key = RegistrationKey.decode(keyString);
 		try {
-			SignedObject signed_registration = register(new RegistrationRequest(key, affiliate_id, version, timelimit, maxtime, forcequit, maxgames));
-			res.setContentType("application/octet-stream");
-
-			ServletOutputStream out = res.getOutputStream();
-			ObjectOutputStream obj_out = new ObjectOutputStream(out);
-			obj_out.writeObject(signed_registration);
-			obj_out.close();
-			log("Oddlabs: Registered key: " + key_str);
+			SignedObject signedRegistration = register(new RegistrationRequest(key, affiliateId, version, timelimit, maxtime, forcequit, maxgames));
+			response.setContentType("application/octet-stream");
+			ObjectOutputStream oos = new ObjectOutputStream(response.getOutputStream());
+			oos.writeObject(signedRegistration);
+			oos.close();
+			log("Oddlabs: Registered key: " + keyString);
 		} catch (Exception e) {
 			log("got exception while registering: " + e);
-			res.sendError(500, e.toString());
+			response.sendError(500, e.toString());
 		}
 	}
 
-	private String validateGGKey(String gg_key) throws IOException {
-		String reply = readReplyFromURL(new URL(GG_IGNITION_URL + gg_key));
-		// parse GG reply
-		String err_prefix = "Error: ";
-		String success_prefix = "Valid: ";
-		if (reply.startsWith(err_prefix)) {
-			String err_msg = reply.substring(err_prefix.length());
-			throw new IOException("GarageGames server validation failed: " + err_msg);
-		} else if (reply.startsWith(success_prefix)) {
-			String username = reply.substring(success_prefix.length());
+	private String validateGGKey(String ggKey) throws IOException {
+		String reply = readReplyFromURL(new URL(GG_IGNITION_URL + ggKey));
+		String errorPrefix = "Error: ";
+		String successPrefix = "Valid: ";
+		if (reply.startsWith(errorPrefix)) {
+			String errorMsg = reply.substring(errorPrefix.length());
+			throw new IOException("GarageGames server validation failed: " + errorMsg);
+		} else if (reply.startsWith(successPrefix)) {
+			String username = reply.substring(successPrefix.length());
 			log("GarageGames username = " + username);
 			return username;
-		} else
+		} else {
 			throw new IOException("Unknown reply from GarageGames: " + reply);
+		}
 	}
 
-	private String createKey(String request_key_str, String affiliate_id) throws IOException {
-		if (affiliate_id != null && affiliate_id.equals("garagegames")) {
-			String gg_username = validateGGKey(request_key_str);
-			String local_key = generateGGKey(request_key_str, gg_username);
-			log("GarageGames local key = " + local_key);
-			return local_key;
+	private String createKey(String requestKeyStr, String affiliateId) throws IOException {
+		if (affiliateId != null && affiliateId.equals("garagegames")) {
+			String ggUsername = validateGGKey(requestKeyStr);
+			String localKey = generateGGKey(requestKeyStr, ggUsername);
+			log("GarageGames local key = " + localKey);
+			return localKey;
 		} else
-			return request_key_str;
+			return requestKeyStr;
 	}
 
 	private SignedObject sign(Serializable obj) throws ServletException {
 		try {
-			Signature reg_signer = Signature.getInstance(RegServiceInterface.SIGN_ALGORITHM);
-			return new SignedObject(obj, private_reg_key, reg_signer);
+			Signature signature = Signature.getInstance(RegServiceInterface.SIGN_ALGORITHM);
+			return new SignedObject(obj, privateRegKey, signature);
 		} catch (GeneralSecurityException e) {
 			throw new ServletException(e);
 		} catch (IOException e) {
@@ -146,11 +142,8 @@ public final strictfp class RegistrationServlet extends HttpServlet {
 		}
 	}
 
-	private SignedObject register(RegistrationRequest reg_request) throws SQLException, ServletException {
-		long reg_key = reg_request.getKey();
-		String affiliate_id = reg_request.getAffiliate();
-		String encoded_key = RegistrationKey.encode(reg_key);
-		RegistrationInfo reg_info = DBInterface.registerKey(getDataSource(), reg_request);
-		return sign(reg_info);
+	private SignedObject register(RegistrationRequest registrationRequest) throws SQLException, ServletException {
+		RegistrationInfo registrationInfo = DBInterface.registerKey(getDataSource(), registrationRequest);
+		return sign(registrationInfo);
 	}
 }
