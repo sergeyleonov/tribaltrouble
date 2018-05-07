@@ -39,10 +39,14 @@ clean install -P run-servlets
 mvn clean install -P build-geometry,convert-textures,run-game
 ```
 
-#### Launch from the bundle
+#### Build the bundle
 ```
-java -cp "common-1.0-SNAPSHOT.jar;resources-1.0-SNAPSHOT.jar;tt-1.0-SNAPSHOT.jar;lib/lwjgl.jar;lib/lwjgl_util.jar;lib/jorbis.jar" -Djava.library.path=lib/native com.oddlabs.tt.Main
+mvn clean install -P build-geometry,convert-textures,bundle
 ```
+
+#### Launch the game from the bundle
+* Unpack zip package found in the *bundle/target* dir
+* Run ```java -cp "common-1.0-SNAPSHOT.jar;resources-1.0-SNAPSHOT.jar;tt-1.0-SNAPSHOT.jar;lib/lwjgl.jar;lib/lwjgl_util.jar;lib/jorbis.jar" -Djava.library.path=lib/native com.oddlabs.tt.Main```
 
 Tribal Trouble (Original Readme)
 ==============
