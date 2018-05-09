@@ -744,7 +744,7 @@ public final strictfp class Renderer {
 		Map parameters = new HashMap();
 		parameters.put("current_affiliate_id", Settings.getSettings().affiliate_id);
 		parameters.put("affiliate_id", affiliate_id);
-		return new HttpRequestParameters("https://" + Settings.getSettings().registration_address + "/oddlabs/registration", parameters);
+		return new HttpRequestParameters("http://" + Settings.getSettings().registration_address + "/oddlabs/registration", parameters);
 	}
 
 	private void cleanup() {
