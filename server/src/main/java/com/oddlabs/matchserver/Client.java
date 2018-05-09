@@ -1,36 +1,14 @@
 package com.oddlabs.matchserver;
 
-import com.oddlabs.util.KeyManager;
-import com.oddlabs.net.AbstractConnection;
-import com.oddlabs.net.ARMIEvent;
-import com.oddlabs.net.HostSequenceID;
-import com.oddlabs.net.ConnectionInterface;
-import com.oddlabs.net.AbstractConnection;
-import com.oddlabs.net.IllegalARMIEventException;
-import com.oddlabs.net.ARMIInterfaceMethods;
-import com.oddlabs.matchmaking.MatchmakingServerInterface;
-import com.oddlabs.matchmaking.MatchmakingServerLoginInterface;
-import com.oddlabs.matchmaking.MatchmakingClientInterface;
-import com.oddlabs.matchmaking.TunnelAddress;
-import com.oddlabs.matchmaking.GameHost;
-import com.oddlabs.matchmaking.RankingEntry;
-import com.oddlabs.matchmaking.Game;
-import com.oddlabs.matchmaking.ChatRoomEntry;
-import com.oddlabs.matchmaking.Participant;
-import com.oddlabs.matchmaking.GameSession;
-import com.oddlabs.matchmaking.Profile;
-import com.oddlabs.matchmaking.Login;
+import com.oddlabs.matchmaking.*;
+import com.oddlabs.net.*;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
 import java.net.InetAddress;
+import java.util.*;
 
 public final strictfp class Client implements MatchmakingServerInterface, ConnectionInterface {
+
 	private final static int CHUNK_SIZE = 10;
 	private final static Set game_hosts = new HashSet();
 	private final static Map active_clients = new HashMap();
@@ -40,17 +18,17 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	private final ARMIInterfaceMethods interface_methods = new ARMIInterfaceMethods(MatchmakingServerInterface.class);
 	private final MatchmakingServer server;
 	private final MatchmakingClientInterface client_interface;
-	
+
 	private final AbstractConnection conn;
 	private final Map tunnels = new HashMap();
 	private final InetAddress remote_address;
 	private final InetAddress local_remote_address;
 	private final int host_id;
 	private HostSequenceID[] multicast_addresses;
-	
+
 	private final Random random = new Random(current_random_seed++);
 	private int update_key = 0;
-	
+
 	private final int revision;
 	private final String username;
 	private final boolean guest;
@@ -65,7 +43,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 		this.server = server;
 		this.remote_address = remote_address;
 		this.local_remote_address = local_remote_address;
-		this.client_interface = (MatchmakingClientInterface)ARMIEvent.createProxy(conn, MatchmakingClientInterface.class);
+		this.client_interface = (MatchmakingClientInterface) ARMIEvent.createProxy(conn, MatchmakingClientInterface.class);
 		this.username = username;
 		this.guest = guest;
 		this.revision = revision;
@@ -77,15 +55,22 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	}
 
 	public final void requestProfiles() {
-		if (!guest)
+		if (guest) {
+			return;
+		}
+		try {
 			client_interface.updateProfileList(DBInterface.getProfiles(username, revision), DBInterface.getLastUsedProfile(username));
+		} catch (Exception e) {
+			MatchmakingServer.getLogger().warning("Cannot get profiles list for " + getUsername());
+		}
 	}
 
 	public final void setProfile(String nick) {
 		closeProfile();
 		if (!guest) {
-			if (nick != null) 
+			if (nick != null) {
 				updateProfile(nick);
+			}
 		} else {
 			updateProfile(new Profile(username, 0, 0, 0, 0, revision));
 		}
@@ -97,33 +82,36 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	}
 
 	public final void createProfile(String nick) {
-		if (!guest) {
-			Profile[] profiles = DBInterface.getProfiles(username, revision);
-			if (profiles.length >= DBInterface.getSettingsInt("max_profiles")) {
-				client_interface.createProfileError(MatchmakingClientInterface.USERNAME_ERROR_TOO_MANY);
-				return;
-			}
-
-			try {
-				Authenticator.checkUsername(nick);
-			} catch (InvalidUsernameException e) {
-				client_interface.createProfileError(e.getErrorCode());
-				return;
-			}
-
-			if (nick.toLowerCase().startsWith("guest")) {
-				client_interface.createProfileError(MatchmakingClientInterface.PROFILE_ERROR_GUEST);
-				return;
-			}
-
-			if (DBInterface.nickExists(nick)) {
-				client_interface.createProfileError(MatchmakingClientInterface.USERNAME_ERROR_ALREADY_EXISTS);
-				return;
-			}
-
-			DBInterface.createProfile(username, nick);
-			client_interface.createProfileSuccess();
+		if (guest) {
+			return;
 		}
+		Profile[] profiles;
+		try {
+			profiles = DBInterface.getProfiles(username, revision);
+		} catch (Exception e) {
+			client_interface.createProfileError(MatchmakingClientInterface.PROFILE_ERROR);
+			return;
+		}
+		if (profiles.length >= DBInterface.getSettingsInt("max_profiles")) {
+			client_interface.createProfileError(MatchmakingClientInterface.USERNAME_ERROR_TOO_MANY);
+			return;
+		}
+		try {
+			Authenticator.checkUsername(nick);
+		} catch (InvalidUsernameException e) {
+			client_interface.createProfileError(e.getErrorCode());
+			return;
+		}
+		if (nick.toLowerCase().startsWith("guest")) {
+			client_interface.createProfileError(MatchmakingClientInterface.PROFILE_ERROR_GUEST);
+			return;
+		}
+		if (DBInterface.nickExists(nick)) {
+			client_interface.createProfileError(MatchmakingClientInterface.USERNAME_ERROR_ALREADY_EXISTS);
+			return;
+		}
+		DBInterface.createProfile(username, nick);
+		client_interface.createProfileSuccess();
 	}
 
 	public final void logPriority(String other_nick, int priority) {
@@ -154,12 +142,12 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 			}
 		}
 	}
-	
+
 	private final void updateProfile(Profile profile) {
 		active_profile = profile;
 		client_interface.updateProfile(active_profile);
 	}
-	
+
 	public final Profile getProfile() {
 		return active_profile;
 	}
@@ -180,7 +168,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 		if (getGameSession() == null)
 			return;
 
-		Client client = (Client)active_clients.get(nick.toLowerCase());
+		Client client = (Client) active_clients.get(nick.toLowerCase());
 		if (client == null)
 			return;
 
@@ -269,11 +257,11 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	private final TimestampedGameSession getGameSession() {
 		return current_session;
 	}
-	
+
 	public final boolean isPlaying() {
 		return current_session != null;
 	}
-	
+
 	public final void handle(Object sender, ARMIEvent event) {
 		try {
 			event.execute(interface_methods, this);
@@ -289,7 +277,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	public final void error(AbstractConnection conn, IOException e) {
 		error(e);
 	}
-	
+
 	private final void error(Exception e) {
 		MatchmakingServer.getLogger().info(username + " logged out. Caused by: " + e.getMessage());
 		MatchmakingServer.getLogger().throwing("Client", "error", e);
@@ -306,7 +294,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	private final Game getCurrentGame() {
 		return current_game;
 	}
-	
+
 	public final InetAddress getRemoteAddress() {
 		return remote_address;
 	}
@@ -314,7 +302,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	private final int getRevision() {
 		return revision;
 	}
-		
+
 	public final void requestList(int type, int update_key) {
 		if (update_key != this.update_key) {
 			client_interface.updateComplete(this.update_key);
@@ -328,7 +316,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 				it = game_hosts.iterator();
 				GameHost[] game_hosts_chunk = new GameHost[CHUNK_SIZE];
 				while (it.hasNext()) {
-					Client client = (Client)it.next();
+					Client client = (Client) it.next();
 					Game game = client.getCurrentGame();
 					int host_id = client.getHostID();
 					int game_revision = client.getRevision();
@@ -349,7 +337,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 				it = ChatRoom.getChatRooms().values().iterator();
 				ChatRoomEntry[] chat_rooms_chunk = new ChatRoomEntry[CHUNK_SIZE];
 				while (it.hasNext()) {
-					ChatRoom chat_room = (ChatRoom)it.next();
+					ChatRoom chat_room = (ChatRoom) it.next();
 					chat_rooms_chunk[chunk_index++] = new ChatRoomEntry(chat_room.getName(), chat_room.getUsers().size());
 					if (chunk_index == chat_rooms_chunk.length) {
 						client_interface.updateList(type, chat_rooms_chunk);
@@ -389,11 +377,11 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	}
 
 	public final void closeTunnel(HostSequenceID address_to) {
-		Client client = (Client)tunnels.remove(address_to);
+		Client client = (Client) tunnels.remove(address_to);
 		if (client != null)
 			client.tunnelClosed(address_to);
 	}
-	
+
 	public final void openTunnel(int address_to, int seq) {
 		HostSequenceID host_seq_id = new HostSequenceID(getHostID(), seq);
 		Client client = server.getClientFromID(address_to);
@@ -412,8 +400,8 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	public final void close() {
 		Iterator it = tunnels.keySet().iterator();
 		while (it.hasNext()) {
-			HostSequenceID tunnel_address = (HostSequenceID)it.next();
-			Client client = (Client)tunnels.get(tunnel_address);
+			HostSequenceID tunnel_address = (HostSequenceID) it.next();
+			Client client = (Client) tunnels.get(tunnel_address);
 			if (client != null && client != this)
 				client.tunnelClosed(tunnel_address);
 		}
@@ -437,34 +425,34 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 		tunnels.put(address_to, remote_client);
 		client_interface.tunnelOpened(address_to, inet_address_to, local_inet_address_to, profile);
 	}
-	
+
 	private final void receiveRoutedEvent(HostSequenceID address, ARMIEvent event) {
 		client_interface.receiveRoutedEvent(address, event);
 	}
-	
+
 	public final void setMulticast(HostSequenceID[] addresses) {
 		this.multicast_addresses = addresses;
 	}
-	
+
 	public final void multicastEvent(ARMIEvent event) {
 		for (int i = 0; i < multicast_addresses.length; i++)
 			routeEvent(multicast_addresses[i], event);
 	}
 
 	public final void routeEvent(HostSequenceID address_to, ARMIEvent event) {
-		Client client = (Client)tunnels.get(address_to);
+		Client client = (Client) tunnels.get(address_to);
 		if (client != null) {
 			client.receiveRoutedEvent(address_to, event);
 		} else
 			tunnelClosed(address_to);
 	}
-	
+
 	private final void tunnelAccepted(HostSequenceID host_seq) {
 		client_interface.tunnelAccepted(host_seq);
 	}
 
 	public final void acceptTunnel(HostSequenceID address_to) {
-		Client client = (Client)tunnels.get(address_to);
+		Client client = (Client) tunnels.get(address_to);
 		if (client != null) {
 			client.tunnelAccepted(address_to);
 		} else
@@ -523,10 +511,10 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 			return;
 		if (getProfile() != null) {
 			if (guest) {
-				 client_interface.receivePrivateMessage("Server", "Sorry, only registered users are able to chat.");
-				 return;
+				client_interface.receivePrivateMessage("Server", "Sorry, only registered users are able to chat.");
+				return;
 			}
-			Client client = (Client)active_clients.get(nick.toLowerCase());
+			Client client = (Client) active_clients.get(nick.toLowerCase());
 			if (client != null) {
 				server.getChatLogger().info("To " + nick + ": " + formatChat(msg));
 				client.getClientInterface().receivePrivateMessage(getProfile().getNick(), msg);
@@ -538,7 +526,7 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	}
 
 	public final void requestInfo(String nick) {
-		Client client = (Client)active_clients.get(nick.toLowerCase());
+		Client client = (Client) active_clients.get(nick.toLowerCase());
 		if (client != null) {
 			Profile profile = client.getProfile();
 			if (profile != null)
@@ -555,8 +543,8 @@ public final strictfp class Client implements MatchmakingServerInterface, Connec
 	public final void sendMessageToRoom(String msg) {
 		if (current_room != null) {
 			if (guest) {
-				 client_interface.receivePrivateMessage("Server", "Sorry, only registered users are able to chat.");
-				 return;
+				client_interface.receivePrivateMessage("Server", "Sorry, only registered users are able to chat.");
+				return;
 			}
 			String formatted_message = formatChat(msg);
 			server.getChatLogger().info(formatted_message);

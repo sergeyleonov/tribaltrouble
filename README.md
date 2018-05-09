@@ -1,8 +1,8 @@
-Tribal Trouble (Y18 edition)
+Tribal Trouble Y18 Edition
 ==============
-User- and developer-friendly revision of Tribal Trouble game originally released by Oddlabs in 2004 and later published under GPL2 license.
+Maven-based release of Tribal Trouble game originally released by Oddlabs in 2004 and later published under GPL2 license.
 
-The project was cloned from [sunenielsen](https://github.com/sunenielsen/tribaltrouble.git) public repo and reworked. You can find the original readme below. Note that the build commands in the old readme will not work for this release. For the actual instructions refer to the main part of this readme.
+The project was cloned from [sunenielsen](https://github.com/sunenielsen/tribaltrouble.git) public repo and reworked. You can find the original readme below. Note that the build commands in the old readme will not work for this project. For the actual instructions refer to the main part of this readme.
 
 Prerequisites
 --------
@@ -27,13 +27,6 @@ cd tt
 mvn clean install -P run-game
 ```
 
-#### Launch the server
-Server is launched separately
-```
-cd servlets
-clean install -P run-servlets
-```
-
 #### Build and run the game
 ```
 mvn clean install -P build-geometry,convert-textures,run-game
@@ -47,6 +40,42 @@ mvn clean install -P build-geometry,convert-textures,bundle
 #### Launch the game from the bundle
 * Unpack zip package found in the *bundle/target* dir
 * Run ```java -cp "common-1.0-SNAPSHOT.jar;resources-1.0-SNAPSHOT.jar;tt-1.0-SNAPSHOT.jar;lib/lwjgl.jar;lib/lwjgl_util.jar;lib/jorbis.jar" -Djava.library.path=lib/native com.oddlabs.tt.Main```
+
+#### Launch the servlets
+```
+cd servlets
+clean install -P run-servlets
+```
+
+#### Launch the server
+```
+cd server
+clean install -P run-server
+```
+The server starts on *localhost:33214*
+
+#### Register the game
+* Update your *settings* file by adding the following line:
+    ```
+    registration_address=localhost:8050
+    ```
+* Launch the *servlets* module
+* Launch the game and choose *Register* from the menu
+* Use 'G35S-AAAA-AAAA-AAAL' as the key
+* Complete the registration procedure
+
+#### Multiplayer game
+* Update your *settings* file by adding or changing the corresponding parameter to the server address, i.e. if you launch both the server and the game on the same machine, it will look this way:
+    ```
+    matchmaking_address=localhost
+    ```
+* Launch *servlets* module
+* Launch *server* module
+* Launch the game and choose *Mutiplayer* from the menu
+* Create new account
+* Create new profile
+
+Note that all registrations made in the multiplayer will be lost once the *servlets* module is stopped.
 
 Tribal Trouble (Original Readme)
 ==============

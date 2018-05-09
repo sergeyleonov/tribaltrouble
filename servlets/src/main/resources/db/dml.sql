@@ -1,8 +1,20 @@
-INSERT INTO registrations (reg_key, disabled, reg_email, timezone, reg_time, num_reg,
-                           name, address1, address2, zip, city, state, country, coupon, os,
-                           affiliate, shop, ref)
-VALUES ('57WS-AAAA-AAAA-AAAA', 0, 'Email', 0, '2018-04-20 17:29:00', 0, 'Name', 'Address1', 'Address2', 'Zip', 'City',
-        'State', 'Country', 'Coupon', 'O', 'Affilate', 'Shop', 'Ref');
+INSERT INTO registrations (
+  id, reg_key, disabled, banned, reg_email, timezone, reg_time, num_reg, name, username, password, email,
+  address1, address2, zip, city, state, country, coupon, os, affiliate, shop, ref
+) VALUES (
+  registrations_seq.nextval, '57WS-AAAA-AAAA-AAAA', 0, 0, 'Email', 0, '2018-04-20 17:29:00', 0, 'Name', 'asdf',
+  '30a518b67dcd7af15b369ccb1518ab3cad8e8b2c', 'a@b.c', 'Address1', 'Address2', 'Zip', 'City', 'State',
+  'Country', 'Coupon', 'O', 'Affiliate', 'Shop', 'Ref'
+);
+
+INSERT INTO registrations (
+  id, reg_key, disabled, banned, reg_email, timezone, reg_time, num_reg, name, username, password, email,
+  address1, address2, zip, city, state, country, coupon, os, affiliate, shop, ref
+) VALUES (
+  registrations_seq.nextval, 'G35S-AAAA-AAAA-AAAL', 0, 0, 'Email', 0, '2018-04-20 17:29:00', 0, 'Name', NULL, NULL,
+  NULL, 'Address1', 'Address2', 'Zip', 'City', 'State',
+  'Country', 'Coupon', 'O', 'Affiliate', 'Shop', 'Ref'
+);
 
 INSERT INTO settings VALUES ('max_profiles', '5');
 

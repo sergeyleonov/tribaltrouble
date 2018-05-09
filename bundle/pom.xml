@@ -35,6 +35,7 @@
 			<groupId>com.oddlabs.tribaltrouble</groupId>
 			<artifactId>servlets</artifactId>
 			<version>1.0-SNAPSHOT</version>
+			<type>war</type>
 		</dependency>
 		<dependency>
 			<groupId>com.oddlabs.tribaltrouble</groupId>

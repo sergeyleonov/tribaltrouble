@@ -1,11 +1,17 @@
 CREATE TABLE registrations (
+  id        INT(10)          NOT NULL,
   reg_key   VARCHAR(20)      NOT NULL,
   disabled  TINYINT(1)       NOT NULL DEFAULT 0,
+  banned    TINYINT(1)       NOT NULL DEFAULT 0,
   reg_email VARCHAR(60)      NOT NULL DEFAULT '',
   timezone  TINYINT(4)       NOT NULL DEFAULT '0',
   reg_time  DATETIME                  DEFAULT '0000-00-00 00:00:00',
   num_reg   INT(10) UNSIGNED NOT NULL DEFAULT '0',
   name      VARCHAR(80)      NOT NULL DEFAULT '',
+  username  VARCHAR(40)      ,
+  password  VARCHAR(40)      ,
+  email     VARCHAR(60)      ,
+  last_used_profile VARCHAR(40),
   address1  VARCHAR(40)      NOT NULL DEFAULT '',
   address2  VARCHAR(40)      NOT NULL DEFAULT '',
   zip       VARCHAR(40)      NOT NULL DEFAULT '',
@@ -17,8 +23,11 @@ CREATE TABLE registrations (
   affiliate VARCHAR(50)      NOT NULL DEFAULT '',
   shop      VARCHAR(20)      NOT NULL DEFAULT 'swreg',
   ref       VARCHAR(255)     NOT NULL DEFAULT '',
-  PRIMARY KEY (reg_key)
+  PRIMARY KEY (id),
+  UNIQUE KEY (reg_key)
 );
+
+CREATE SEQUENCE registrations_seq;
 
 CREATE TABLE match_user (
   username          VARCHAR(20) NOT NULL,
@@ -61,3 +70,17 @@ CREATE TABLE game_reports (
   team6   INT(10) NOT NULL,
   PRIMARY KEY (game_id, tick)
 );
+
+CREATE TABLE profiles (
+  id      INT(10)     NOT NULL,
+  reg_id  INT(10)     NOT NULL,
+  nick    VARCHAR(40) NOT NULL,
+  rating  INT(10)     NOT NULL DEFAULT 0,
+  wins    INT(10)     NOT NULL DEFAULT 0,
+  losses  INT(10)     NOT NULL DEFAULT 0,
+  invalid TINYINT(1)  NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  FOREIGN KEY (reg_id) REFERENCES registrations (id)
+);
+
+CREATE INDEX profiles_index ON profiles(id);

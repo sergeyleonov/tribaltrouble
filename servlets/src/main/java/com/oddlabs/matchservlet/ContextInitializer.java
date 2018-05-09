@@ -1,6 +1,7 @@
 package com.oddlabs.matchservlet;
 
 import com.oddlabs.util.Utils;
+import org.h2.tools.Server;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -37,6 +38,7 @@ public final class ContextInitializer implements ServletContextListener {
 	}
 
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		createH2Server();
 		ServletContext servletContext = servletContextEvent.getServletContext();
 		servletContext.setAttribute("db", getDataSource());
 		KeyPair keyPair = generateKeyPair();
@@ -56,6 +58,15 @@ public final class ContextInitializer implements ServletContextListener {
 			getDataSource().getConnection().prepareStatement(dmlScript).execute();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+
+//	todo: [] move it to the server app
+	private void createH2Server() {
+		try {
+			Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "8043").start();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

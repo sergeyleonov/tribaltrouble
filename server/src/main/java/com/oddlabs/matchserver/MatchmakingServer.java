@@ -8,6 +8,7 @@ import com.oddlabs.registration.RegistrationKey;
 import com.oddlabs.util.DBUtils;
 import com.oddlabs.util.KeyManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.PublicKey;
@@ -21,10 +22,12 @@ public final class MatchmakingServer implements ConnectionListenerInterface {
 
 	private static final Logger logger = Logger.getLogger("com.oddlabs.matchserver");
 	private static final Map<String, Client> online_users = new HashMap<String, Client>();
+
 	private static int current_id = 1;
 
 	static {
 		try {
+			new File("logs").mkdir();
 			Handler fh = new FileHandler("logs/matchserver.%g.log", 10 * 1024 * 1024, 50);
 			fh.setFormatter(new SimpleFormatter());
 			logger.addHandler(fh);
@@ -48,7 +51,7 @@ public final class MatchmakingServer implements ConnectionListenerInterface {
 		chat_logger.addHandler(fh);
 		chat_logger.setLevel(Level.ALL);
 		this.public_reg_key = RegistrationKey.loadPublicKey();
-		DBUtils.initConnection("jdbc:h2:mem:db;MODE=MYSQL", "dev", "dev");
+		DBUtils.initConnection("jdbc:h2:tcp://localhost:8043/mem:db;MODE=MYSQL", "dev", "dev");
 		logger.info("Generating encryption keys.");
 		this.param_spec = KeyManager.generateParameterSpec();
 		new ConnectionListener(network, null, MatchmakingServerInterface.MATCHMAKING_SERVER_PORT, this);
@@ -70,18 +73,6 @@ public final class MatchmakingServer implements ConnectionListenerInterface {
 		}
 	}
 
-	public static Logger getLogger() {
-		return logger;
-	}
-
-	private static void postPanic() {
-		try {
-			DBUtils.postHermesMessage("elias, xar, jacob, thufir: Matchmaking service crashed!");
-		} catch (Throwable t) {
-			logger.throwing("MatchmakingServer", "postPanic", t);
-		}
-	}
-
 	@Override
 	public final void error(AbstractConnectionListener conn_id, IOException e) {
 		logger.severe("Server socket failed!");
@@ -94,6 +85,18 @@ public final class MatchmakingServer implements ConnectionListenerInterface {
 		AbstractConnection conn = connection_listener.acceptConnection(null);
 		SecureConnection secure_conn = new SecureConnection(network.getDeterministic(), conn, param_spec);
 		Authenticator client = new Authenticator(this, secure_conn, (InetAddress) remote_address, id);
+	}
+
+	public static Logger getLogger() {
+		return logger;
+	}
+
+	private static void postPanic() {
+		try {
+			DBUtils.postHermesMessage("elias, xar, jacob, thufir: Matchmaking service crashed!");
+		} catch (Throwable t) {
+			logger.throwing("MatchmakingServer", "postPanic", t);
+		}
 	}
 
 	public final Logger getChatLogger() {

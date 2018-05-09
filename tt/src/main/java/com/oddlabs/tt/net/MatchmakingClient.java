@@ -1,51 +1,26 @@
 package com.oddlabs.tt.net;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.security.SignedObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.ResourceBundle;
-
-import com.oddlabs.matchmaking.ChatRoomUser;
-import com.oddlabs.matchmaking.Login;
-import com.oddlabs.matchmaking.LoginDetails;
-import com.oddlabs.matchmaking.MatchmakingClientInterface;
-import com.oddlabs.matchmaking.MatchmakingServerInterface;
-import com.oddlabs.matchmaking.MatchmakingServerLoginInterface;
-import com.oddlabs.matchmaking.Profile;
-import com.oddlabs.matchmaking.TunnelAddress;
-import com.oddlabs.net.ARMIEvent;
-import com.oddlabs.net.ARMIInterfaceMethods;
-import com.oddlabs.net.AbstractConnection;
-import com.oddlabs.net.Connection;
-import com.oddlabs.net.NetworkSelector;
-import com.oddlabs.net.ConnectionInterface;
-import com.oddlabs.net.HostSequenceID;
-import com.oddlabs.net.IllegalARMIEventException;
-import com.oddlabs.net.SecureConnection;
+import com.oddlabs.matchmaking.*;
+import com.oddlabs.net.*;
 import com.oddlabs.tt.form.ChatErrorForm;
-import com.oddlabs.tt.form.InGameChatForm;
 import com.oddlabs.tt.form.InfoForm;
 import com.oddlabs.tt.global.Settings;
 import com.oddlabs.tt.gui.ChatRoomInfo;
 import com.oddlabs.tt.gui.GUIRoot;
-import com.oddlabs.tt.gui.InfoPrinter;
 import com.oddlabs.tt.gui.LocalInput;
-import com.oddlabs.tt.delegate.SelectionDelegate;
 import com.oddlabs.tt.render.Renderer;
 import com.oddlabs.tt.util.Utils;
-import com.oddlabs.tt.event.LocalEventQueue;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.security.SignedObject;
+import java.util.*;
 
 public final strictfp class MatchmakingClient implements MatchmakingClientInterface, ConnectionInterface {
 	private final static int STATE_NOT_CONNECTED = 1;
 	private final static int STATE_AWAITING_OK = 2;
 	private final static int STATE_LOGGED_IN = 4;
-	
+
 	private final Map tunnels = new HashMap();
 	private final ARMIInterfaceMethods interface_methods = new ARMIInterfaceMethods(MatchmakingClientInterface.class);
 	private final ChatRoomHistory chat_room_history;
@@ -68,7 +43,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 
 	private Login login;
 	private LoginDetails login_details;
-	
+
 	MatchmakingClient() {
 		this.chat_room_history = new ChatRoomHistory();
 		this.in_game_chat_history = new InGameChatHistory();
@@ -97,7 +72,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 			this.username = username;
 			this.local_address = address;
 			this.matchmaking_login_interface = null;
-			this.matchmaking_interface = (MatchmakingServerInterface)ARMIEvent.createProxy(conn.getWrappedConnectionAndShutdown(), MatchmakingServerInterface.class);
+			this.matchmaking_interface = (MatchmakingServerInterface) ARMIEvent.createProxy(conn.getWrappedConnectionAndShutdown(), MatchmakingServerInterface.class);
 			state = STATE_LOGGED_IN;
 			MatchmakingListener listener = Network.getMatchmakingListener();
 			listener.loggedIn();
@@ -106,7 +81,6 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 
 	public final void requestProfiles() {
 		matchmaking_interface.requestProfiles();
-		
 	}
 
 	public final void requestList(int type) {
@@ -121,13 +95,13 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 		return active_profile;
 	}
 
-/*	public final String getNick() {
-		if (active_profile == null)
-			return username;
-		else
-			return active_profile.getNick();
-	}
-*/
+	/*	public final String getNick() {
+			if (active_profile == null)
+				return username;
+			else
+				return active_profile.getNick();
+		}
+	*/
 	public final void setProfile(String nick) {
 		matchmaking_interface.setProfile(nick);
 	}
@@ -182,13 +156,13 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 		if (listener != null)
 			listener.receivedList(type, names);
 	}
-	
+
 	public final void updateComplete(int next_update_key) {
 		this.update_key = next_update_key;
 		update_allowed = true;
 		if (!update_requested_types.isEmpty()) {
 			Iterator it = update_requested_types.iterator();
-			int type = ((Integer)it.next()).intValue();
+			int type = ((Integer) it.next()).intValue();
 			it.remove();
 			requestList(type);
 		}
@@ -199,11 +173,11 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 		if (listener != null)
 			listener.receivedProfiles(profiles, last_profile_nick);
 	}
-	
+
 	public final void joiningChatRoom(String room_name) {
 		assert chat_room_info == null;
 		chat_room_info = new ChatRoomInfo(room_name);
-		
+
 		chat_room_history.clear();
 		MatchmakingListener listener = Network.getMatchmakingListener();
 		if (listener != null)
@@ -267,7 +241,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 			chat_gui_root = null;
 		}
 	}
-	
+
 	public final boolean isConnected() {
 		return state == STATE_LOGGED_IN;
 	}
@@ -275,7 +249,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 	private final void open(NetworkSelector network) {
 		close();
 		this.conn = new SecureConnection(network.getDeterministic(), new Connection(network, Settings.getSettings().matchmaking_address, MatchmakingServerInterface.MATCHMAKING_SERVER_PORT, this), null);
-		this.matchmaking_login_interface = (MatchmakingServerLoginInterface)ARMIEvent.createProxy(conn, MatchmakingServerLoginInterface.class);
+		this.matchmaking_login_interface = (MatchmakingServerLoginInterface) ARMIEvent.createProxy(conn, MatchmakingServerLoginInterface.class);
 	}
 
 	public final void login(NetworkSelector network, Login login, LoginDetails login_details) {
@@ -290,7 +264,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 		MatchmakingListener listener = Network.getMatchmakingListener();
 		listener.loginError(error_code);
 	}
-	
+
 	public final MatchmakingServerLoginInterface getLoginInterface() {
 		assert !isConnected();
 		return matchmaking_login_interface;
@@ -308,7 +282,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 	public final String getUsername() {
 		return username;
 	}
-	
+
 	public final void registerTunnel(HostSequenceID host_seq, TunnelledConnection conn) {
 		Object old = tunnels.put(host_seq, conn);
 		assert old == null;
@@ -333,7 +307,7 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 	public final void closeTunnel(HostSequenceID host_seq) {
 		matchmaking_interface.closeTunnel(host_seq);
 	}
-	
+
 	public final void registerTunnelledListener(TunnelledConnectionListener listener) {
 		assert tunnelled_listener == null;
 		this.tunnelled_listener = listener;
@@ -345,19 +319,19 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 	}
 
 	private final TunnelledConnection removeTunnel(HostSequenceID from) {
-		return (TunnelledConnection)tunnels.remove(from);
+		return (TunnelledConnection) tunnels.remove(from);
 	}
-	
+
 	private final TunnelledConnection getTunnel(HostSequenceID from) {
-		return (TunnelledConnection)tunnels.get(from);
+		return (TunnelledConnection) tunnels.get(from);
 	}
-	
+
 	public final void tunnelClosed(HostSequenceID from) {
 		TunnelledConnection tunnel = removeTunnel(from);
 		if (tunnel != null)
 			tunnel.tunnelClosed();
 	}
-	
+
 	public final void tunnelAccepted(HostSequenceID from) {
 		TunnelledConnection tunnel = getTunnel(from);
 		if (tunnel != null)
@@ -395,12 +369,12 @@ public final strictfp class MatchmakingClient implements MatchmakingClientInterf
 		if (listener != null)
 			listener.connectionLost();
 	}
-	
+
 	public final void connected(AbstractConnection connection) {
 		SignedObject signed_key = Renderer.getRegistrationClient().getSignedRegistrationKey();
-		Connection wrapped_connection = (Connection)conn.getWrappedConnection();
+		Connection wrapped_connection = (Connection) conn.getWrappedConnection();
 		matchmaking_login_interface.setLocalRemoteAddress(wrapped_connection.getLocalAddress());
-System.out.println("wrapped_connection.getLocalAddress()	 = " + wrapped_connection.getLocalAddress()	);
+		System.out.println("wrapped_connection.getLocalAddress() = " + wrapped_connection.getLocalAddress());
 		int revision = LocalInput.getRevision();
 		if (!Renderer.isRegistered())
 			matchmaking_login_interface.loginAsGuest(revision);
@@ -413,7 +387,7 @@ System.out.println("wrapped_connection.getLocalAddress()	 = " + wrapped_connecti
 	public final void error(AbstractConnection conn, IOException e) {
 		handleError(e);
 	}
-	
+
 	public final void close() {
 		//if (state == STATE_NOT_CONNECTED)
 		//	return;
@@ -423,7 +397,7 @@ System.out.println("wrapped_connection.getLocalAddress()	 = " + wrapped_connecti
 		}
 		Iterator it = tunnels.values().iterator();
 		while (it.hasNext()) {
-			TunnelledConnection tunnel = (TunnelledConnection)it.next();
+			TunnelledConnection tunnel = (TunnelledConnection) it.next();
 			tunnel.tunnelClosed();
 		}
 		tunnels.clear();

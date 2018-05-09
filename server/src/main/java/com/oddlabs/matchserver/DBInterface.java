@@ -30,7 +30,7 @@ public final strictfp class DBInterface {
 			}
 		} catch (SQLException e) {
 			MatchmakingServer.getLogger().throwing(DBInterface.class.getName(), "getRegKeyUsername", e);
-			throw new IllegalArgumentException("key " + reg_key + " not i DB");
+			throw new IllegalArgumentException("key " + reg_key + " not in DB");
 		}
 	}
 
@@ -110,7 +110,12 @@ public final strictfp class DBInterface {
 						int invalid = result.getInt("invalid");
 						profiles.add(new Profile(nick, rating, wins, losses, invalid, revision));
 					}
-					return (Profile[]) profiles.toArray();
+					if (profiles.isEmpty()) {
+						return new Profile[0];
+					} else {
+						Profile[] profilesArray = new Profile[profiles.size()];
+						return profiles.toArray(profilesArray);
+					}
 				} finally {
 					result.close();
 				}

@@ -53,6 +53,9 @@ public final strictfp class CreatingProfileForm extends Form implements ProfileL
 		remove();
 		String error_message;
 		switch (error_code) {
+			case MatchmakingClientInterface.PROFILE_ERROR:
+				error_message = Utils.getBundleString(bundle, "profile_error");
+				break;
 			case MatchmakingClientInterface.USERNAME_ERROR_TOO_MANY:
 				error_message = Utils.getBundleString(bundle, "username_error_too_many");
 				break;
